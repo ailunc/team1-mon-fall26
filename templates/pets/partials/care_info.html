@@ -1,7 +1,7 @@
 {% comment %}
   A pet's feeding, medication and emergency information as three cards.
   Used on the owner's pet page and on the caregiver's view of the pet.
-  Pass is_owner=True on the owner's page to show "Add" links for missing info.
+  Pass is_owner=True on the owner's page; it changes the wording for missing info.
 {% endcomment %}
 <div class="care-cards">
   <section class="care-card" aria-labelledby="care-feeding">
@@ -17,7 +17,7 @@
       </dl>
       {% if pet.feeding_instructions %}<p class="care-notes">{{ pet.feeding_instructions|linebreaksbr }}</p>{% endif %}
     {% else %}
-      <p class="muted care-empty">No feeding instructions{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#feeding-heading">Add them</a>{% else %}.{% endif %}</p>
+      <p class="muted care-empty">No feeding instructions{% if is_owner %} yet{% endif %}.</p>
     {% endif %}
   </section>
 
@@ -37,8 +37,6 @@
     {% endif %}
     {% if pet.special_care_instructions %}
       <p class="care-notes">{{ pet.special_care_instructions|linebreaksbr }}</p>
-    {% elif is_owner and not pet.has_medication_info %}
-      <p class="muted care-empty"><a class="text-link" href="{% url 'pets:edit' pet.pk %}#care-heading">Add special care notes</a></p>
     {% endif %}
   </section>
 
@@ -55,7 +53,7 @@
         {% if pet.emergency_contact_phone %}<div><dt>Phone</dt><dd><a class="phone-link" href="tel:{{ pet.emergency_contact_phone|cut:' ' }}">{{ pet.emergency_contact_phone }}</a></dd></div>{% endif %}
       </dl>
     {% else %}
-      <p class="muted care-empty">No emergency or vet contacts{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#emergency-heading">Add them</a>{% else %}. Ask the owner before the visit.{% endif %}</p>
+      <p class="muted care-empty">No emergency or vet contacts{% if is_owner %} yet.{% else %}. Ask the owner before the visit.{% endif %}</p>
     {% endif %}
   </section>
 </div>
