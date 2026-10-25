@@ -137,13 +137,31 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Dog walking")
 
+    def test_pet_care_skills_are_saved(self):
+        self.client.post(
+            self.url,
+            self.profile_data(pet_care_skills=["giving_medication", "leash_training"]),
+        )
+        caregiver = CaregiverProfile.objects.get()
+        self.assertEqual(caregiver.pet_care_skills, ["giving_medication", "leash_training"])
+        self.assertEqual(
+            caregiver.pet_care_skill_labels, ["Giving medication", "Leash training"]
+        )
+
+    def test_form_shows_years_as_ranges(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<option value="3">3–5 years</option>', html=True)
+        self.assertContains(response, "Pet-care skills")
+
     def test_post_saves_profile_and_redirects_to_it(self):
         response = self.client.post(self.url, self.profile_data())
         caregiver = CaregiverProfile.objects.get()
         self.assertRedirects(response, reverse("caregiver", args=[caregiver.pk]))
         self.assertEqual(caregiver.name, "Chloe Shih")
         self.assertEqual(caregiver.service_area, "Brooklyn")
-        self.assertEqual(caregiver.years_of_experience, 4)
+        # 4 years is saved as the start of its range, "3–5 years".
+        self.assertEqual(caregiver.years_of_experience, 3)
+        self.assertEqual(caregiver.experience_label, "3–5 years")
         self.assertEqual(caregiver.special_skills, "Giving medication")
         self.assertTrue(caregiver.accepting_new_bookings)
         self.assertEqual(

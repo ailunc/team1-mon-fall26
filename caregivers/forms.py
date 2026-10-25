@@ -1,12 +1,32 @@
 from django import forms
 
 from .geocoding import GeocodingUnavailable, geocode
-from .models import CaregiverProfile, CaregiverService, ServiceType
+from .models import (
+    EXPERIENCE_CHOICES,
+    PET_CARE_SKILLS,
+    CaregiverProfile,
+    CaregiverService,
+    ServiceType,
+    experience_range,
+)
 
 
 class CaregiverProfileForm(forms.ModelForm):
     selected_services = forms.ModelMultipleChoiceField(
         queryset=ServiceType.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+    )
+    # Shown as a dropdown of ranges; any whole number is accepted and saved as
+    # the start of its range (e.g. 4 is saved as 3, "3–5 years").
+    years_of_experience = forms.IntegerField(
+        min_value=0,
+        initial=0,
+        label="Years caring for pets",
+        widget=forms.Select(choices=EXPERIENCE_CHOICES),
+    )
+    pet_care_skills = forms.MultipleChoiceField(
+        choices=PET_CARE_SKILLS,
         widget=forms.CheckboxSelectMultiple,
         required=False,
     )
@@ -24,6 +44,7 @@ class CaregiverProfileForm(forms.ModelForm):
             "special_skills",
             "certifications",
             "supported_pet_types",
+            "pet_care_skills",
             "accepting_new_bookings",
             ]
         widgets = {
@@ -47,10 +68,18 @@ class CaregiverProfileForm(forms.ModelForm):
         # Required for new entries; the model allows blank so older profiles
         # without an address still load.
         self.fields["address"].required = True
+        # Older profiles saved an exact number of years; show the range it falls in.
+        if self.instance.pk:
+            self.initial["years_of_experience"] = experience_range(
+                self.instance.years_of_experience
+            )
         # Set when the address lookup service is down: the profile still saves,
         # without map coordinates, and the view tells the caregiver.
         self.geocoding_unavailable = False
         self._location = None
+
+    def clean_years_of_experience(self):
+        return experience_range(self.cleaned_data["years_of_experience"])
 
     @property
     def matched_location(self):
