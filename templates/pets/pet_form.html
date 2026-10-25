@@ -93,34 +93,47 @@
       {% for error in form.age.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
     </div>
 
-    <section class="form-section" aria-labelledby="feeding-heading">
-      <div class="section-heading">
-        <h2 id="feeding-heading"><span class="section-dot section-dot-feeding" aria-hidden="true"></span>Feeding</h2>
+    <section class="care-form-section care-form-feeding" aria-labelledby="feeding-heading">
+      <div class="care-form-heading">
+        {% include "pets/partials/care_icon.html" with kind="feeding" %}
+        <h2 id="feeding-heading">Feeding</h2>
         <span class="tag">Optional</span>
       </div>
-      {% include "pets/partials/care_field.html" with field=form.feeding_instructions hint="Include times, portions and the food brand, so caregivers can keep the usual routine." %}
+      <p class="care-form-note">What, how much and when, so your pet keeps their usual routine.</p>
+      <div class="field-pair">
+        {% include "pets/partials/care_field.html" with field=form.food %}
+        {% include "pets/partials/care_field.html" with field=form.portion %}
+      </div>
+      {% include "pets/partials/care_field.html" with field=form.feeding_times %}
+      {% include "pets/partials/care_field.html" with field=form.feeding_instructions %}
     </section>
 
-    <section class="form-section" aria-labelledby="care-heading">
-      <div class="section-heading">
-        <h2 id="care-heading"><span class="section-dot section-dot-care" aria-hidden="true"></span>Medication &amp; special care</h2>
+    <section class="care-form-section care-form-medication" aria-labelledby="care-heading">
+      <div class="care-form-heading">
+        {% include "pets/partials/care_icon.html" with kind="medication" %}
+        <h2 id="care-heading">Medication &amp; special care</h2>
         <span class="tag">Optional</span>
       </div>
-      {% include "pets/partials/care_field.html" with field=form.medications hint="Name, dose and when to give it. Leave blank if none." %}
+      <p class="care-form-note">Leave the medication blank if {% if pet %}{{ pet.name }} doesn't{% else %}your pet doesn't{% endif %} take any.</p>
+      <div class="field-pair">
+        {% include "pets/partials/care_field.html" with field=form.medications %}
+        {% include "pets/partials/care_field.html" with field=form.medication_dose %}
+      </div>
+      {% include "pets/partials/care_field.html" with field=form.medication_schedule %}
       {% include "pets/partials/care_field.html" with field=form.special_care_instructions %}
     </section>
 
-    <section class="form-section" aria-labelledby="emergency-heading">
-      <div class="section-heading">
-        <h2 id="emergency-heading"><span class="section-dot section-dot-emergency" aria-hidden="true"></span>Emergency &amp; vet</h2>
+    <section class="care-form-section care-form-emergency" aria-labelledby="emergency-heading">
+      <div class="care-form-heading">
+        {% include "pets/partials/care_icon.html" with kind="emergency" %}
+        <h2 id="emergency-heading">Emergency &amp; vet</h2>
         <span class="tag">Optional</span>
       </div>
-      <p class="muted small section-note">Only caregivers with an accepted booking for {% if pet %}{{ pet.name }}{% else %}this pet{% endif %} can see this.</p>
+      <p class="care-form-note">Only caregivers with an accepted booking for {% if pet %}{{ pet.name }}{% else %}this pet{% endif %} can see this.</p>
       <div class="field-pair">
         {% include "pets/partials/care_field.html" with field=form.vet_name %}
         {% include "pets/partials/care_field.html" with field=form.vet_phone %}
       </div>
-      {% include "pets/partials/care_field.html" with field=form.vet_address %}
       <div class="field-pair">
         {% include "pets/partials/care_field.html" with field=form.emergency_contact_name %}
         {% include "pets/partials/care_field.html" with field=form.emergency_contact_phone %}

@@ -20,12 +20,20 @@ class Pet(models.Model):
     description = models.TextField(blank=True)
     special_care_instructions = models.TextField(blank=True)
 
-    # Care information caregivers see once they accept a booking.
-    feeding_instructions = models.TextField(blank=True)
-    medications = models.TextField(blank=True)
-    vet_name = models.CharField("Vet or clinic name", max_length=100, blank=True)
+    # Care information for caregivers (#20, #21, #23).
+    # Feeding: what, how much and when, plus any extra notes.
+    food = models.CharField(max_length=100, blank=True)
+    portion = models.CharField(max_length=100, blank=True)
+    feeding_times = models.CharField(max_length=100, blank=True)
+    feeding_instructions = models.TextField("Feeding notes", blank=True)
+    # Medication: name, dose and schedule. Other care notes live in
+    # special_care_instructions.
+    medications = models.TextField("Medication", blank=True)
+    medication_dose = models.CharField("Dose", max_length=100, blank=True)
+    medication_schedule = models.CharField("Schedule", max_length=100, blank=True)
+    # Emergency and vet contacts.
+    vet_name = models.CharField("Vet", max_length=100, blank=True)
     vet_phone = models.CharField("Vet phone", max_length=30, blank=True)
-    vet_address = models.CharField("Vet address", max_length=200, blank=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True)
     emergency_contact_phone = models.CharField(max_length=30, blank=True)
 
@@ -72,12 +80,36 @@ class Pet(models.Model):
         return f"{months} month{'s' if months != 1 else ''}"
 
     @property
+    def has_feeding_info(self):
+        return any([self.food, self.portion, self.feeding_times, self.feeding_instructions])
+
+    @property
+    def has_medication_info(self):
+        return any([self.medications, self.medication_dose, self.medication_schedule])
+
+    @property
     def has_vet_info(self):
-        return bool(self.vet_name or self.vet_phone or self.vet_address)
+        return bool(self.vet_name or self.vet_phone)
 
     @property
     def has_emergency_contact(self):
         return bool(self.emergency_contact_name or self.emergency_contact_phone)
+
+    @property
+    def feeding_summary(self):
+        """One line for caregivers, e.g. "Kibble, 1 cup at 8 AM and 6 PM."."""
+        line = ", ".join(part for part in [self.food, self.portion] if part)
+        if self.feeding_times:
+            line = f"{line} at {self.feeding_times}" if line else self.feeding_times
+        return f"{line}." if line and not line.endswith(".") else line
+
+    @property
+    def medication_summary(self):
+        """One line for caregivers, e.g. "Probiotic, 1 g, once daily."."""
+        line = ", ".join(
+            part for part in [self.medications, self.medication_dose, self.medication_schedule] if part
+        )
+        return f"{line}." if line and not line.endswith(".") else line
 
     @property
     def theme(self):

@@ -3,7 +3,7 @@
 
 {% block title %}{{ pet.name }} · Care info · PawPal{% endblock %}
 
-{% block main_class %}page page-medium{% endblock %}
+{% block main_class %}page page-medium page-pet{% endblock %}
 
 {% block content %}
   <a class="back-link" href="{% url 'bookings:caregiver_requests' %}?status=accepted"><span aria-hidden="true">&lsaquo;</span> Back to care requests</a>

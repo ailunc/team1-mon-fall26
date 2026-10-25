@@ -20,14 +20,18 @@ from .models import Pet, PetType
 User = get_user_model()
 
 CARE_INFO = {
-    "feeding_instructions": "1 cup of kibble at 8 AM and 6 PM",
-    "medications": "Apoquel 16 mg with breakfast",
+    "food": "Timothy hay + fresh greens",
+    "portion": "Unlimited hay, 1 cup greens",
+    "feeding_times": "8:00 AM, 6:00 PM",
+    "feeding_instructions": "Refill the water bottle each visit",
+    "medications": "Probiotic (Bene-Bac)",
+    "medication_dose": "1 g",
+    "medication_schedule": "Once daily with morning greens",
     "special_care_instructions": "Scared of thunder",
-    "vet_name": "Park Slope Animal Clinic",
+    "vet_name": "Dr. Turkell, GoodVets",
     "vet_phone": "(718) 555-0142",
-    "vet_address": "120 7th Ave, Brooklyn",
-    "emergency_contact_name": "Jordan Lee",
-    "emergency_contact_phone": "+1 212 555 0199",
+    "emergency_contact_name": "Joy Wang (cousin)",
+    "emergency_contact_phone": "+1 917 555 0187",
 }
 
 
@@ -59,9 +63,9 @@ class OwnerCareInfoTests(TestCase):
 
     def test_form_shows_the_care_sections(self):
         response = self.client.get(reverse("pets:create"))
-        for text in ("Feeding instructions", "Medications",
-                     "Special care instructions", "Vet phone",
-                     "Emergency contact name"):
+        for text in ("Food", "Portion", "Times", "Feeding notes", "Medication",
+                     "Dose", "Schedule", "Special care", "Vet phone",
+                     "Emergency contact"):
             self.assertContains(response, text)
 
     def test_owner_page_shows_care_information(self):
@@ -75,7 +79,7 @@ class OwnerCareInfoTests(TestCase):
     def test_owner_page_offers_to_add_missing_information(self):
         pet = Pet.objects.create(owner=self.owner, name="Milo", pet_type=self.dog)
         response = self.client.get(pet.get_absolute_url())
-        self.assertContains(response, "No feeding instructions added yet.")
+        self.assertContains(response, "No feeding instructions yet.")
         self.assertContains(response, reverse("pets:edit", args=[pet.pk]) + "#feeding-heading")
 
     def test_owner_can_edit_care_information_later(self):
@@ -86,7 +90,7 @@ class OwnerCareInfoTests(TestCase):
         self.client.post(
             reverse("pets:edit", args=[pet.pk]),
             self.form_data(feeding_instructions="Half a cup, twice a day",
-                           medications=""),
+                           medications="", medication_dose="", medication_schedule=""),
         )
         pet.refresh_from_db()
         self.assertEqual(pet.feeding_instructions, "Half a cup, twice a day")
@@ -117,7 +121,7 @@ class OwnerCareInfoTests(TestCase):
 
     def test_vet_phone_alone_is_fine(self):
         response = self.client.post(
-            reverse("pets:create"), self.form_data(vet_name="", vet_address="")
+            reverse("pets:create"), self.form_data(vet_name="")
         )
         self.assertEqual(response.status_code, 302)
 
@@ -196,7 +200,7 @@ class CaregiverPetViewTests(TestCase):
 
     def test_caregiver_sees_message_when_owner_added_no_contacts(self):
         Pet.objects.filter(pk=self.pet.pk).update(
-            vet_name="", vet_phone="", vet_address="",
+            vet_name="", vet_phone="",
             emergency_contact_name="", emergency_contact_phone="",
         )
         self.book()
@@ -239,3 +243,65 @@ class PetPageDesignTests(TestCase):
         self.assertContains(response, "Pet photo")
         self.assertContains(response, "Upload photo")
         self.assertContains(response, "JPG or PNG, up to 5 MB")
+
+
+class CareSummaryTests(TestCase):
+    """Kat's Figma: care details split into fields, with a short summary for caregivers."""
+
+    def setUp(self):
+        self.owner = User.objects.create_user("alex", password="pass12345")
+        self.carer_user = User.objects.create_user("chloe", password="pass12345")
+        self.caregiver = CaregiverProfile.objects.create(
+            user=self.carer_user, name="Chloe Shih", service_area="Brooklyn"
+        )
+        self.pet = Pet.objects.create(
+            owner=self.owner, name="Biscuit", pet_type=PetType.objects.get(name="Dog"), **CARE_INFO
+        )
+
+    def book(self, status):
+        start = timezone.now() + timedelta(days=1)
+        return Booking.objects.create(
+            owner=self.owner,
+            pet=self.pet,
+            caregiver=self.caregiver,
+            service_type=ServiceType.objects.get(name="Dog walking"),
+            start_time=start,
+            end_time=start + timedelta(hours=1),
+            status=status,
+        )
+
+    def test_feeding_and_medication_summaries(self):
+        self.assertEqual(
+            self.pet.feeding_summary,
+            "Timothy hay + fresh greens, Unlimited hay, 1 cup greens at 8:00 AM, 6:00 PM.",
+        )
+        self.assertEqual(
+            self.pet.medication_summary, "Probiotic (Bene-Bac), 1 g, Once daily with morning greens."
+        )
+        self.assertEqual(Pet(name="Empty").feeding_summary, "")
+        self.assertEqual(Pet(feeding_times="8 AM").feeding_summary, "8 AM.")
+
+    def test_dose_needs_a_medication_name(self):
+        self.client.login(username="alex", password="pass12345")
+        response = self.client.post(
+            reverse("pets:create"),
+            {"name": "Milo", "pet_type": self.pet.pet_type.pk, "age": 2, "age_unit": "years",
+             "medication_dose": "1 g"},
+        )
+        self.assertContains(response, "Add the medication&#x27;s name.")
+
+    def test_request_panel_shows_care_summary_but_hides_contacts_until_accepted(self):
+        self.client.login(username="chloe", password="pass12345")
+        self.book(Booking.Status.PENDING)
+        response = self.client.get(reverse("bookings:caregiver_requests"))
+        self.assertContains(response, "Timothy hay + fresh greens")
+        self.assertContains(response, "Probiotic (Bene-Bac)")
+        self.assertContains(response, "Shared with you once you accept this request.")
+        self.assertNotContains(response, CARE_INFO["vet_phone"])
+
+    def test_request_panel_shows_contacts_once_accepted(self):
+        self.client.login(username="chloe", password="pass12345")
+        self.book(Booking.Status.ACCEPTED)
+        response = self.client.get(reverse("bookings:caregiver_requests") + "?status=accepted")
+        self.assertContains(response, CARE_INFO["vet_phone"])
+        self.assertContains(response, "Emergency: Joy Wang (cousin)")

@@ -1794,42 +1794,24 @@ img.pet-initial-large {
 
 /* ---------- Care information (feeding, medication, emergency) ---------- */
 
-.section-dot {
-  display: inline-block;
+/* Round icons: peach bowl, pink pill, blue first-aid kit (Figma). */
+.care-icon {
+  display: inline-grid;
+  place-items: center;
   flex: none;
-  width: 12px;
-  height: 12px;
-  margin-right: 8px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  vertical-align: 1px;
 }
 
-.section-dot-feeding { background: var(--yellow); }
-.section-dot-care { background: var(--pink-deep); }
-.section-dot-emergency { background: var(--orange); }
-
-/* Form sections */
-
-.form-section {
-  margin: 8px 0 20px;
-  padding-top: 20px;
-  border-top: 1px dashed var(--line-strong);
+.care-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.form-section h2 {
-  font-size: 18px;
-}
-
-.section-note {
-  margin: -8px 0 14px;
-}
+.care-icon-feeding { background: #fcd9c4; color: #9a4a1c; }
+.care-icon-medication { background: #fbd0e0; color: #9b2c5a; }
+.care-icon-emergency { background: #d3e6f6; color: #1e4a73; }
 
 .field-hint {
   margin-top: 6px;
@@ -1843,80 +1825,164 @@ img.pet-initial-large {
   gap: 0 14px;
 }
 
-/* Profile sections */
-
-.care-sections {
-  display: grid;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.care-block {
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-left: 5px solid var(--block-accent);
-  border-radius: var(--radius);
-  background: #fff;
-}
-
-.care-block-feeding { --block-accent: var(--yellow); }
-.care-block-care { --block-accent: var(--pink-deep); }
-.care-block-emergency { --block-accent: var(--orange); background: #fffaf6; }
-
-.pet-profile-body .care-block h2 {
-  margin: 0 0 8px;
-  font-size: 17px;
-}
-
-.care-block h3 {
-  margin: 12px 0 2px;
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.care-block h2 + h3 {
-  margin-top: 4px;
-}
-
-.care-block .section-note {
-  margin: 10px 0 0;
-}
-
-.contact-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-}
-
-.contact dt {
-  margin-bottom: 2px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.contact dd {
-  display: grid;
-  gap: 1px;
-  margin: 0;
-  font-size: 13px;
-}
-
 .phone-link {
-  font-weight: 700;
-  color: var(--purple);
+  font-weight: 600;
+  color: inherit;
   text-decoration: none;
 }
 
 .phone-link:hover {
+  color: var(--purple);
   text-decoration: underline;
+}
+
+/* Form: each care section is a tinted box. */
+
+.care-form-section {
+  margin: 0 0 16px;
+  padding: 16px 16px 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fdf6f2;
+}
+
+.care-form-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.care-form-heading h2 {
+  font-size: 17px;
+}
+
+.care-form-note {
+  margin: 8px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.care-form-section .field {
+  margin-bottom: 14px;
+}
+
+.care-form-section input[type="text"],
+.care-form-section input[type="tel"],
+.care-form-section textarea {
+  background: #fff;
+}
+
+.care-form-section textarea {
+  min-height: 64px;
+}
+
+/* Pet page: three cards side by side. */
+
+.care-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.care-card {
+  padding: 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  background: #fcf6f2;
+}
+
+.care-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.pet-profile-body .care-card h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.care-facts {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.care-facts dt {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.care-facts dd {
+  margin: 1px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.pet-profile-body .care-card p {
+  font-size: 12px;
+}
+
+.care-notes {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-strong);
+  color: #4a3f3b;
+}
+
+.care-privacy {
+  margin-top: 10px;
+}
+
+/* The pet page is a little wider than other medium pages so three care cards fit (Figma). */
+.page-pet {
+  max-width: 780px;
+}
+
+/* Caregiver's request panel: short summary cards. */
+
+.care-summary {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.care-summary-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fcf6f2;
+}
+
+.care-summary-item .care-icon {
+  width: 26px;
+  height: 26px;
+}
+
+.care-summary-item .care-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Two classes deep so the request panel's own h3/p sizes don't override these. */
+.care-summary .care-summary-item h3 {
+  margin: 3px 0 2px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.care-summary .care-summary-item p {
+  padding-top: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #3d322e;
 }
 
 /* Caregiver's upcoming visits for this pet */
@@ -1957,9 +2023,14 @@ img.pet-initial-large {
   margin-top: 14px;
 }
 
+@media (max-width: 760px) {
+  .care-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
-  .field-pair,
-  .contact-list {
+  .field-pair {
     grid-template-columns: 1fr;
   }
 
@@ -1986,6 +2057,9 @@ img.pet-initial-large {
   background-color: var(--input-bg);
 }
 
+.care-summary .phone-link {
+  font-weight: inherit;
+}
 .caregiver-availability {
     display: inline-flex;
     align-items: center;

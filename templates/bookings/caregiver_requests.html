@@ -64,10 +64,7 @@
             <div class="tile tile-type"><dt>When</dt><dd>{{ b.start_time|date:"D, M j" }} ·<br>{{ b.start_time|date:"g:i A" }}</dd></div>
           </dl>
 
-          <div class="request-care">
-            <h3>Care needs</h3>
-            <p>{{ b.pet.special_care_instructions|default:"No care needs added."|linebreaksbr }}</p>
-          </div>
+          {% include "pets/partials/care_summary.html" with pet=b.pet show_contacts=b.shows_pet_care_info %}
 
           {% if b.shows_pet_care_info %}
             <a class="btn btn-outline btn-block pet-care-link" href="{% url 'pets:care_view' b.pet.pk %}">View {{ b.pet.name }}'s full profile</a>

@@ -81,72 +81,58 @@ class PetForm(forms.ModelForm):
             "photo",
             "name",
             "pet_type",
+            "food",
+            "portion",
+            "feeding_times",
             "feeding_instructions",
             "medications",
+            "medication_dose",
+            "medication_schedule",
             "special_care_instructions",
             "vet_name",
             "vet_phone",
-            "vet_address",
             "emergency_contact_name",
             "emergency_contact_phone",
         ]
         labels = {
             "photo": "Photo",
             "name": "Pet name",
-            "feeding_instructions": "Feeding instructions",
-            "medications": "Medications",
-            "special_care_instructions": "Special care instructions",
-            "vet_name": "Vet or clinic name",
+            "food": "Food",
+            "portion": "Portion",
+            "feeding_times": "Times",
+            "feeding_instructions": "Feeding notes",
+            "medications": "Medication",
+            "medication_dose": "Dose",
+            "medication_schedule": "Schedule",
+            "special_care_instructions": "Special care",
+            "vet_name": "Vet",
             "vet_phone": "Vet phone",
-            "vet_address": "Vet address",
-            "emergency_contact_name": "Emergency contact name",
-            "emergency_contact_phone": "Emergency contact phone",
+            "emergency_contact_name": "Emergency contact",
+            "emergency_contact_phone": "Phone",
         }
         widgets = {
             "photo": forms.FileInput(attrs={"accept": "image/*"}),
             "name": forms.TextInput(attrs={"placeholder": "e.g. Pepper"}),
+            "food": forms.TextInput(attrs={"placeholder": "e.g. Timothy hay + fresh greens"}),
+            "portion": forms.TextInput(attrs={"placeholder": "e.g. 1 cup greens"}),
+            "feeding_times": forms.TextInput(attrs={"placeholder": "e.g. 8:00 AM, 6:00 PM"}),
             "feeding_instructions": forms.Textarea(
-                attrs={
-                    "rows": 3,
-                    "placeholder": (
-                        "e.g. 1 cup of dry food at 8 AM and 6 PM. "
-                        "No table scraps. Fresh water always."
-                    ),
-                }
+                attrs={"rows": 2, "placeholder": "e.g. Refill the water bottle each visit. No fruit treats."}
             ),
-            "medications": forms.Textarea(
-                attrs={
-                    "rows": 3,
-                    "placeholder": (
-                        "e.g. Apoquel 16 mg, 1 tablet with breakfast. "
-                        "Hide it in a treat."
-                    ),
-                }
-            ),
+            # One line in the design, but kept as a text field so longer names fit.
+            "medications": forms.TextInput(attrs={"placeholder": "e.g. Probiotic (Bene-Bac)"}),
+            "medication_dose": forms.TextInput(attrs={"placeholder": "e.g. 1 g"}),
+            "medication_schedule": forms.TextInput(attrs={"placeholder": "e.g. Once daily with morning greens"}),
             "special_care_instructions": forms.Textarea(
                 attrs={
                     "rows": 3,
-                    "placeholder": (
-                        "Allergies, temperament, routines, anything else "
-                        "a caregiver should know"
-                    ),
+                    "placeholder": "Temperament, allergies, routines, anything else a caregiver should know",
                 }
             ),
-            "vet_name": forms.TextInput(
-                attrs={"placeholder": "e.g. Park Slope Vet"}
-            ),
-            "vet_phone": forms.TextInput(
-                attrs={"placeholder": "(212) 555-0142", "type": "tel"}
-            ),
-            "vet_address": forms.TextInput(
-                attrs={"placeholder": "e.g. 120 7th Ave, Brooklyn, NY"}
-            ),
-            "emergency_contact_name": forms.TextInput(
-                attrs={"placeholder": "e.g. Jordan Lee"}
-            ),
-            "emergency_contact_phone": forms.TextInput(
-                attrs={"placeholder": "(212) 555-0199", "type": "tel"}
-            ),
+            "vet_name": forms.TextInput(attrs={"placeholder": "e.g. Dr. Turkell, GoodVets"}),
+            "vet_phone": forms.TextInput(attrs={"placeholder": "(718) 555-0142", "type": "tel"}),
+            "emergency_contact_name": forms.TextInput(attrs={"placeholder": "e.g. Joy Wang (cousin)"}),
+            "emergency_contact_phone": forms.TextInput(attrs={"placeholder": "(917) 555-0187", "type": "tel"}),
         }
         error_messages = {
             "name": {"required": "Enter your pet's name."},
@@ -212,6 +198,9 @@ class PetForm(forms.ModelForm):
                 and not cleaned.get("emergency_contact_name"):
             self.add_error("emergency_contact_name",
                            "Add your emergency contact's name.")
+        if (cleaned.get("medication_dose") or cleaned.get("medication_schedule")) \
+                and not cleaned.get("medications"):
+            self.add_error("medications", "Add the medication's name.")
         return cleaned
 
     def save(self, commit=True):

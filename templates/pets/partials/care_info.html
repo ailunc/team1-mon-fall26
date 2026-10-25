@@ -1,61 +1,62 @@
 {% comment %}
-  A pet's feeding, medication and emergency information.
+  A pet's feeding, medication and emergency information as three cards.
   Used on the owner's pet page and on the caregiver's view of the pet.
   Pass is_owner=True on the owner's page to show "Add" links for missing info.
 {% endcomment %}
-<div class="care-sections">
-  <section class="care-block care-block-feeding" aria-labelledby="care-feeding">
-    <h2 id="care-feeding"><span class="section-dot section-dot-feeding" aria-hidden="true"></span>Feeding</h2>
-    {% if pet.feeding_instructions %}
-      <p>{{ pet.feeding_instructions|linebreaksbr }}</p>
+<div class="care-cards">
+  <section class="care-card" aria-labelledby="care-feeding">
+    <div class="care-card-heading">
+      {% include "pets/partials/care_icon.html" with kind="feeding" %}
+      <h2 id="care-feeding">Feeding</h2>
+    </div>
+    {% if pet.has_feeding_info %}
+      <dl class="care-facts">
+        {% if pet.food %}<div><dt>Food</dt><dd>{{ pet.food }}</dd></div>{% endif %}
+        {% if pet.portion %}<div><dt>Portion</dt><dd>{{ pet.portion }}</dd></div>{% endif %}
+        {% if pet.feeding_times %}<div><dt>Times</dt><dd>{{ pet.feeding_times }}</dd></div>{% endif %}
+      </dl>
+      {% if pet.feeding_instructions %}<p class="care-notes">{{ pet.feeding_instructions|linebreaksbr }}</p>{% endif %}
     {% else %}
-      <p class="muted">No feeding instructions added{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#feeding-heading">Add them</a>{% else %}.{% endif %}</p>
+      <p class="muted care-empty">No feeding instructions{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#feeding-heading">Add them</a>{% else %}.{% endif %}</p>
     {% endif %}
   </section>
 
-  <section class="care-block care-block-care" aria-labelledby="care-meds">
-    <h2 id="care-meds"><span class="section-dot section-dot-care" aria-hidden="true"></span>Medication &amp; special care</h2>
-    <h3>Medications</h3>
-    {% if pet.medications %}
-      <p>{{ pet.medications|linebreaksbr }}</p>
-    {% else %}
-      <p class="muted">No medications.</p>
-    {% endif %}
-    <h3>Special care instructions</h3>
-    {% if pet.special_care_instructions %}
-      <p>{{ pet.special_care_instructions|linebreaksbr }}</p>
-    {% else %}
-      <p class="muted">None added{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#care-heading">Add them</a>{% else %}.{% endif %}</p>
-    {% endif %}
-  </section>
-
-  <section class="care-block care-block-emergency" aria-labelledby="care-emergency">
-    <h2 id="care-emergency"><span class="section-dot section-dot-emergency" aria-hidden="true"></span>Emergency &amp; vet</h2>
-    {% if pet.has_vet_info or pet.has_emergency_contact %}
-      <dl class="contact-list">
-        {% if pet.has_vet_info %}
-          <div class="contact">
-            <dt>Vet</dt>
-            <dd>
-              {% if pet.vet_name %}<strong>{{ pet.vet_name }}</strong>{% endif %}
-              {% if pet.vet_phone %}<a class="phone-link" href="tel:{{ pet.vet_phone|cut:' ' }}">{{ pet.vet_phone }}</a>{% endif %}
-              {% if pet.vet_address %}<span class="muted">{{ pet.vet_address }}</span>{% endif %}
-            </dd>
-          </div>
-        {% endif %}
-        {% if pet.has_emergency_contact %}
-          <div class="contact">
-            <dt>Emergency contact</dt>
-            <dd>
-              <strong>{{ pet.emergency_contact_name }}</strong>
-              <a class="phone-link" href="tel:{{ pet.emergency_contact_phone|cut:' ' }}">{{ pet.emergency_contact_phone }}</a>
-            </dd>
-          </div>
-        {% endif %}
+  <section class="care-card" aria-labelledby="care-meds">
+    <div class="care-card-heading">
+      {% include "pets/partials/care_icon.html" with kind="medication" %}
+      <h2 id="care-meds">Medication &amp; special care</h2>
+    </div>
+    {% if pet.has_medication_info %}
+      <dl class="care-facts">
+        {% if pet.medications %}<div><dt>Medication</dt><dd>{{ pet.medications }}</dd></div>{% endif %}
+        {% if pet.medication_dose %}<div><dt>Dose</dt><dd>{{ pet.medication_dose }}</dd></div>{% endif %}
+        {% if pet.medication_schedule %}<div><dt>Schedule</dt><dd>{{ pet.medication_schedule }}</dd></div>{% endif %}
       </dl>
     {% else %}
-      <p class="muted">No emergency or vet contacts added{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#emergency-heading">Add them</a>{% else %}. Ask the owner before the visit.{% endif %}</p>
+      <p class="muted care-empty">No medication.</p>
     {% endif %}
-    {% if is_owner %}<p class="muted small section-note">Only caregivers with an accepted booking for {{ pet.name }} can see this.</p>{% endif %}
+    {% if pet.special_care_instructions %}
+      <p class="care-notes">{{ pet.special_care_instructions|linebreaksbr }}</p>
+    {% elif is_owner and not pet.has_medication_info %}
+      <p class="muted care-empty"><a class="text-link" href="{% url 'pets:edit' pet.pk %}#care-heading">Add special care notes</a></p>
+    {% endif %}
+  </section>
+
+  <section class="care-card" aria-labelledby="care-emergency">
+    <div class="care-card-heading">
+      {% include "pets/partials/care_icon.html" with kind="emergency" %}
+      <h2 id="care-emergency">Emergency &amp; vet</h2>
+    </div>
+    {% if pet.has_vet_info or pet.has_emergency_contact %}
+      <dl class="care-facts">
+        {% if pet.vet_name %}<div><dt>Vet</dt><dd>{{ pet.vet_name }}</dd></div>{% endif %}
+        {% if pet.vet_phone %}<div><dt>Vet phone</dt><dd><a class="phone-link" href="tel:{{ pet.vet_phone|cut:' ' }}">{{ pet.vet_phone }}</a></dd></div>{% endif %}
+        {% if pet.emergency_contact_name %}<div><dt>Emergency contact</dt><dd>{{ pet.emergency_contact_name }}</dd></div>{% endif %}
+        {% if pet.emergency_contact_phone %}<div><dt>Phone</dt><dd><a class="phone-link" href="tel:{{ pet.emergency_contact_phone|cut:' ' }}">{{ pet.emergency_contact_phone }}</a></dd></div>{% endif %}
+      </dl>
+    {% else %}
+      <p class="muted care-empty">No emergency or vet contacts{% if is_owner %} yet. <a class="text-link" href="{% url 'pets:edit' pet.pk %}#emergency-heading">Add them</a>{% else %}. Ask the owner before the visit.{% endif %}</p>
+    {% endif %}
   </section>
 </div>
+{% if is_owner %}<p class="muted small care-privacy">Emergency &amp; vet details are only shown to caregivers with an accepted booking for {{ pet.name }}.</p>{% endif %}
