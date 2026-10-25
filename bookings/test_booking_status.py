@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import Booking
-from .tests import FMT, BookingTestData
+from .tests import BookingTestData, times
 
 LIST_URL = reverse("bookings:booking_list")
 CREATE_URL = reverse("bookings:booking_create")
@@ -25,11 +25,13 @@ class SpecifyBookingDetailsTests(BookingTestData):
         response = self.client.get(CREATE_URL)
         self.assertContains(response, "Dog walking")
         self.assertContains(response, "Pet sitting")
-        self.assertContains(response, 'type="datetime-local"', count=2)
+        self.assertContains(response, 'type="date"', count=2)
+        self.assertContains(response, 'type="time"', count=2)
 
     def test_service_date_and_start_time_are_required(self):
         for field in ("service_type", "start_time"):
-            response = self.client.post(CREATE_URL, self.form_data(**{field: ""}))
+            blank = {"start_time_0": "", "start_time_1": ""} if field == "start_time" else {field: ""}
+            response = self.client.post(CREATE_URL, self.form_data(**blank))
             self.assertEqual(response.status_code, 200)
             self.assertIn(field, response.context["form"].errors)
         self.assertFalse(Booking.objects.exists())
@@ -42,8 +44,7 @@ class SpecifyBookingDetailsTests(BookingTestData):
             CREATE_URL,
             self.form_data(
                 service_type=self.sitting.pk,
-                start_time=start.strftime(FMT),
-                end_time=(start + timedelta(hours=2)).strftime(FMT),
+                **times(start, start + timedelta(hours=2)),
             ),
             follow=True,
         )
