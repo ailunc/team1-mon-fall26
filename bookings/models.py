@@ -11,7 +11,7 @@ class Booking(models.Model):
         PENDING = "pending", "Pending"
         ACCEPTED = "accepted", "Accepted"
         DECLINED = "declined", "Declined"
-        CANCELLED = "cancelled", "Cancelled"
+        CANCELLED = "cancelled", "Canceled"
         COMPLETED = "completed", "Completed"
 
     owner = models.ForeignKey(

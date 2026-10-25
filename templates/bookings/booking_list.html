@@ -8,7 +8,7 @@
   <div class="page-heading">
     <div>
       <h1>My booking requests</h1>
-      <p class="muted">Each request shows its current status: Pending, Accepted, Declined, Cancelled or Completed.</p>
+      <p class="muted">Each request shows its current status: Pending, Accepted, Declined, Canceled or Completed.</p>
     </div>
     <a class="btn btn-dark" href="{% url 'bookings:booking_create' %}"><span aria-hidden="true">+</span> New request</a>
   </div>
@@ -32,7 +32,7 @@
     {% if history %}
       <section class="booking-section">
         <h2>History</h2>
-        <p class="muted small">Completed, declined and cancelled requests, and care that has already ended.</p>
+        <p class="muted small">Completed, declined and canceled requests, and care that has already ended.</p>
         <div class="card booking-list-card">
           <div class="booking-rows">
             {% for booking in history %}
