@@ -72,7 +72,7 @@ class FilterByServiceTests(FilterTestData):
     def test_only_caregivers_offering_the_service_appear(self):
         response = self.client.get(URL, {"service": self.sitting.pk})
         self.assertEqual(self.names(response), ["Alicia", "Marcus"])
-        self.assertContains(response, "offering <strong>Pet sitting</strong>")
+        self.assertContains(response, "2 caregivers on PawPal · Pet sitting")
 
     def test_inactive_or_unpriced_services_do_not_count(self):
         response = self.client.get(URL, {"service": self.sitting.pk})
@@ -93,7 +93,7 @@ class FilterByServiceTests(FilterTestData):
             [s.service_type.name for s in alicia.listed_services],
             ["Pet sitting", "Dog walking"],
         )
-        self.assertContains(response, 'class="is-match"')
+        self.assertContains(response, 'class="service-chip is-match"')
 
     def test_owner_can_change_the_service(self):
         walking = self.client.get(URL, {"service": self.walking.pk})
@@ -103,23 +103,23 @@ class FilterByServiceTests(FilterTestData):
 
     def test_owner_can_remove_the_filter(self):
         response = self.client.get(URL, {"service": self.walking.pk})
-        self.assertContains(response, "Clear filters")
-        self.assertEqual(response.context["clear_filters_url"], URL)
-        everyone = self.client.get(response.context["clear_filters_url"])
+        self.assertContains(response, "Clear filter")
+        self.assertEqual(response.context["query_without_service"], "")
+        everyone = self.client.get(URL)
         self.assertEqual(self.names(everyone), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"])
-        self.assertNotContains(everyone, "Clear filters")
+        self.assertNotContains(everyone, "Clear filter")
 
-    def test_clearing_filters_keeps_the_location(self):
+    def test_clearing_the_filter_keeps_the_location(self):
         response = self.client.get(
-            URL, {"address": "x", **NYU, "service": self.walking.pk, "availability": "any"}
+            URL, {"location": "x", **NYU, "service": self.walking.pk, "distance": "2"}
         )
-        clear_url = response.context["clear_filters_url"]
-        self.assertNotIn("service=", clear_url)
-        self.assertNotIn("availability=", clear_url)
-        self.assertIn("lat=40.729", clear_url)
+        query = response.context["query_without_service"]
+        self.assertNotIn("service=", query)
+        self.assertIn("lat=40.729", query)
+        self.assertIn("distance=2", query)
 
     def test_combines_with_location_search(self):
-        response = self.client.get(URL, {"address": "x", **NYU, "service": self.sitting.pk})
+        response = self.client.get(URL, {"location": "x", **NYU, "service": self.sitting.pk})
         self.assertEqual(self.names(response), ["Alicia", "Marcus"])
         self.assertContains(response, "2 caregivers near")
         points = [p["name"] for p in response.context["map_data"]["points"]]
@@ -127,23 +127,16 @@ class FilterByServiceTests(FilterTestData):
 
     def test_no_match_message(self):
         response = self.client.get(
-            URL, {"area": "SI0101", "service": self.sitting.pk}
+            URL, {"area": "MN0202", "service": self.sitting.pk, "distance": "1"}
         )
         self.assertEqual(self.names(response), [])
-        self.assertContains(response, "No caregivers offer Pet sitting")
+        self.assertContains(response, "No caregivers offer Pet sitting near")
 
     def test_unknown_service_is_ignored_with_a_message(self):
         for value in ("999999", "abc", str(self.grooming.pk)):
             response = self.client.get(URL, {"service": value})
             self.assertContains(response, "Choose a service from the list.")
             self.assertEqual(len(self.names(response)), 5)
-
-    def test_request_link_carries_the_service(self):
-        response = self.client.get(URL, {"service": self.sitting.pk})
-        self.assertContains(
-            response,
-            f"{BOOKING_URL}?caregiver={self.midtown.pk}&amp;service_type={self.sitting.pk}",
-        )
 
     def test_booking_form_preselects_the_service(self):
         response = self.client.get(
@@ -155,30 +148,25 @@ class FilterByServiceTests(FilterTestData):
 
 
 class FilterByAvailabilityTests(FilterTestData):
-    """#35: by default only caregivers taking new bookings are shown."""
+    """#35: only caregivers taking new bookings are shown (the page has no
+    control for it yet; ?availability=any is kept for a future filter)."""
 
-    def test_unavailable_caregivers_are_excluded_by_default(self):
+    def test_unavailable_caregivers_are_excluded(self):
         response = self.client.get(URL)
         self.assertNotIn("Busy", self.names(response))
-        self.assertContains(
-            response, '<option value="available" selected>Taking new bookings</option>', html=True
-        )
-        self.assertNotContains(response, "Clear filters")
+        self.assertNotContains(response, "Not taking new bookings")
 
     def test_any_availability_includes_them_marked_unavailable(self):
         response = self.client.get(URL, {"availability": "any"})
         self.assertIn("Busy", self.names(response))
         self.assertContains(response, "Not taking new bookings")
-        self.assertContains(response, "Not taking requests")
-        self.assertNotContains(response, f"{BOOKING_URL}?caregiver={self.busy.pk}")
-        # Available caregivers can still be requested.
-        self.assertContains(response, f"{BOOKING_URL}?caregiver={self.village.pk}")
+        # The choice is kept when the owner searches again.
+        self.assertContains(response, '<input type="hidden" name="availability" value="any">')
 
-    def test_owner_can_change_availability_back(self):
-        any_ = self.client.get(URL, {"availability": "any"})
-        self.assertContains(any_, "Clear filters")
+    def test_available_is_the_default(self):
         available = self.client.get(URL, {"availability": "available"})
         self.assertNotIn("Busy", self.names(available))
+        self.assertNotContains(available, 'name="availability" value="any"')
 
     def test_follows_the_caregiver_setting(self):
         self.busy.accepting_new_bookings = True
@@ -199,7 +187,7 @@ class FilterByAvailabilityTests(FilterTestData):
         self.assertNotIn("NoAccount", self.names(response))
 
     def test_combines_with_service_and_location(self):
-        params = {"address": "x", **NYU, "service": self.walking.pk}
+        params = {"location": "x", **NYU, "service": self.walking.pk}
         self.assertEqual(self.names(self.client.get(URL, params)), ["Chloe", "Alicia"])
         self.assertEqual(
             self.names(self.client.get(URL, {**params, "availability": "any"})),

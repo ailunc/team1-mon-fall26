@@ -6,14 +6,22 @@ from .models import CaregiverProfile, CaregiverService
 from .forms import CaregiverProfileForm, CaregiverServicesForm
 from .geocoding import GeocodingUnavailable, geocode
 from .search import (
+    DEFAULT_DISTANCE,
+    DISTANCE_CHOICES,
+    SORT_CHOICES,
     caregivers_matching_text,
     caregivers_near,
+    find_neighborhood,
+    find_zip_code,
+    nearby_suggestions,
+    nearest_neighborhood,
     neighborhood,
     neighborhoods,
     offered_service_types,
     offering_service,
     put_service_first,
     searchable_caregivers,
+    sort_caregivers,
 )
 
 
@@ -262,23 +270,24 @@ def edit_caregiver_service(request, pk, service_id):
     )
 
 
-# Availability filter options (#35); "available" is the default.
-AVAILABILITY_CHOICES = {
-    "available": "Taking new bookings",
-    "any": "Any availability",
-}
+# Availability (#35) follows the caregiver's "Accepting new bookings" setting.
+# The page only shows available caregivers; ?availability=any lists everyone
+# (kept for a future filter control).
+AVAILABILITY_CHOICES = ("available", "any")
 
 
 @login_required
 def caregiver_list(request):
-    """Story #33: owners search caregivers by location and see them on a map.
+    """Story #33: owners search caregivers near a neighborhood, ZIP code,
+    address or their current location.
 
-    Results can be filtered by service (#34) and availability (#35).
+    Results can be filtered by service (#34) and availability (#35), limited
+    by distance and sorted.
     """
+    params = request.GET
     notice = ""
 
-    # Availability (#35): taking new bookings, as set on the caregiver's profile.
-    availability = request.GET.get("availability", "available")
+    availability = params.get("availability", "available")
     if availability not in AVAILABILITY_CHOICES:
         availability = "available"
     caregivers = searchable_caregivers(
@@ -287,7 +296,7 @@ def caregiver_list(request):
 
     # Service (#34): only caregivers who list it.
     service_types = offered_service_types()
-    service_code = request.GET.get("service", "").strip()
+    service_code = params.get("service", "").strip()
     service = None
     if service_code:
         service = next(
@@ -299,36 +308,61 @@ def caregiver_list(request):
         else:
             caregivers = offering_service(caregivers, service)
 
-    area_code = request.GET.get("area", "").strip()
-    address = request.GET.get("address", "").strip()
-    latitude, longitude = _coordinates(request.GET)
+    distance = _choice(params.get("distance"), DISTANCE_CHOICES, DEFAULT_DISTANCE)
+    sort = params.get("sort", "closest")
+    if sort not in SORT_CHOICES:
+        sort = "closest"
 
-    origin = None  # where the owner is searching from: {"label", "latitude", "longitude"}
+    # Where the owner is searching from. `address` is the old name of `location`.
+    text = (params.get("location") or params.get("address") or "").strip()
+    area_code = params.get("area", "").strip()
+    current = params.get("here") == "1"
+    latitude, longitude = _coordinates(params)
+
+    origin = None  # {"label", "latitude", "longitude"}
     results = None
-
-    if latitude is not None and address:
-        # Picked from the address suggestions in the browser.
-        origin = {"label": address, "latitude": latitude, "longitude": longitude}
-    elif address:
-        try:
-            location = geocode(address)
-        except GeocodingUnavailable:
-            location = None
-            results = caregivers_matching_text(caregivers, address)
+    if current:
+        if latitude is None:
             notice = (
-                "Address search is unavailable right now, so these results "
-                "match the neighborhood name instead."
+                "Your current location isn't in New York City. "
+                "Enter a neighborhood or ZIP code instead."
             )
         else:
-            if location is None:
-                notice = "We couldn't find that address in New York City."
-                results = []
+            hood = nearest_neighborhood(latitude, longitude)
+            origin = {
+                "label": f"you ({hood['name']})",
+                "latitude": latitude,
+                "longitude": longitude,
+            }
+    elif latitude is not None and text:
+        # Picked from the suggestions in the browser.
+        origin = {"label": text, "latitude": latitude, "longitude": longitude}
+    elif text:
+        place = _place_for(text)
+        if place is None:
+            try:
+                location = geocode(text)
+            except GeocodingUnavailable:
+                location = None
+                results = caregivers_matching_text(caregivers, text)
+                notice = (
+                    "Address search is unavailable right now, so these results "
+                    "match the neighborhood name instead."
+                )
             else:
-                origin = {
-                    "label": address,
-                    "latitude": location.latitude,
-                    "longitude": location.longitude,
-                }
+                if location is None:
+                    notice = (
+                        "We couldn't find that place in New York City. Try a "
+                        "neighborhood, ZIP code or street address."
+                    )
+                    results = []
+                else:
+                    place = {
+                        "label": text,
+                        "latitude": location.latitude,
+                        "longitude": location.longitude,
+                    }
+        origin = place
     elif area_code:
         area = neighborhood(area_code)
         if area is None:
@@ -340,10 +374,18 @@ def caregiver_list(request):
                 "longitude": area["longitude"],
             }
 
+    suggestions = []
     if origin is not None:
-        results = caregivers_near(caregivers, origin["latitude"], origin["longitude"])
+        results = caregivers_near(
+            caregivers, origin["latitude"], origin["longitude"], max_miles=distance
+        )
+        if not results:
+            suggestions = nearby_suggestions(
+                caregivers, float(origin["latitude"]), float(origin["longitude"]), distance
+            )
     elif results is None:
         results = list(caregivers)
+    results = sort_caregivers(results, sort, has_origin=origin is not None)
     if service is not None:
         put_service_first(results, service)
 
@@ -358,24 +400,36 @@ def caregiver_list(request):
         for c in results
         if c.latitude is not None and c.longitude is not None
     ]
+    searched = bool(text or area_code or current)
     return render(
         request,
         "caregivers/caregiver_list.html",
         {
             "caregivers": results,
-            "neighborhoods": neighborhoods(),
+            "location_text": "" if current else text,
             "area_code": area_code,
-            "address": address,
+            "current": current,
             "origin": origin,
             "notice": notice,
-            "searched": bool(address or area_code),
+            "searched": searched,
+            "suggestions": suggestions,
+            "distance": distance,
+            "distance_choices": DISTANCE_CHOICES,
+            "sort": sort,
+            "sort_choices": SORT_CHOICES.items(),
             "service_types": service_types,
             "service": service,
-            "service_code": service_code,
             "availability": availability,
-            "availability_choices": AVAILABILITY_CHOICES.items(),
-            "filtered": bool(service or availability != "available"),
-            "clear_filters_url": _without_filters(request.GET),
+            "show_map": params.get("map") == "1",
+            "query_without_service": _without(params, "service"),
+            "neighborhood_options": [
+                {
+                    "label": f"{n['name']}, {n['borough']}",
+                    "latitude": n["latitude"],
+                    "longitude": n["longitude"],
+                }
+                for n in neighborhoods()
+            ],
             "map_data": {
                 "points": map_points,
                 "origin": (
@@ -391,13 +445,33 @@ def caregiver_list(request):
     )
 
 
-def _without_filters(params):
-    """This search's URL with the service and availability filters removed."""
+def _place_for(text):
+    """A neighborhood or ZIP code the owner typed, as an origin, or None."""
+    hood = find_neighborhood(text)
+    if hood is not None:
+        return {
+            "label": f"{hood['name']}, {hood['borough']}",
+            "latitude": hood["latitude"],
+            "longitude": hood["longitude"],
+        }
+    return find_zip_code(text)
+
+
+def _choice(value, choices, default):
+    """An int from the query string if it's one of the choices, else the default."""
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        return default
+    return number if number in choices else default
+
+
+def _without(params, *keys):
+    """This search's query string without the given keys."""
     kept = params.copy()
-    for key in ("service", "availability"):
+    for key in keys:
         kept.pop(key, None)
-    query = kept.urlencode()
-    return f"{reverse('caregiver_list')}?{query}" if query else reverse("caregiver_list")
+    return kept.urlencode()
 
 
 def _coordinates(params):
