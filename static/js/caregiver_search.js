@@ -92,6 +92,10 @@
   var map = L.map(mapElement, { scrollWheelZoom: false }).setView([40.7128, -74.006], 11);
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 18,
+    // OpenStreetMap blocks tile requests without a Referer, and Django's
+    // default Referrer-Policy (same-origin) sends none to other sites.
+    // Send just our origin (e.g. http://127.0.0.1:8000), never the page URL.
+    referrerPolicy: "strict-origin-when-cross-origin",
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
