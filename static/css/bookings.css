@@ -373,7 +373,7 @@
 .booking-detail-header { --theme-bg: var(--lavender); --theme-ink: var(--purple-dark); --theme-deep: #c6b5ef; }
 .theme-dog.booking-avatar, .theme-dog.booking-detail-header { --theme-bg: var(--peach); --theme-ink: #7a3410; --theme-deep: #f6b88a; }
 .theme-cat.booking-avatar, .theme-cat.booking-detail-header { --theme-bg: var(--mint); --theme-ink: #14532d; --theme-deep: #93d8b4; }
-.theme-rabbit.booking-avatar, .theme-rabbit.booking-detail-header { --theme-bg: var(--pink); --theme-ink: #4a0f2a; --theme-deep: var(--pink-deep); }
+.theme-rabbit.booking-avatar, .theme-rabbit.booking-detail-header { --theme-bg: var(--pink); --theme-ink: #7a1f45; --theme-deep: var(--pink-deep); }
 .theme-bird.booking-avatar, .theme-bird.booking-detail-header { --theme-bg: var(--yellow-soft); --theme-ink: #6b4a08; --theme-deep: #f2c95f; }
 .theme-fish.booking-avatar, .theme-fish.booking-detail-header { --theme-bg: var(--blue-soft); --theme-ink: #1e4a73; --theme-deep: #a9cbea; }
 .booking-avatar-large.booking-avatar { background: #fff; }
@@ -397,3 +397,45 @@
 .request-actions-single { grid-template-columns: 1fr; }
 .request-row .status-cancelled, .request-panel .status-cancelled { background: #fdecea; color: var(--error); }
 .request-row .status-completed, .request-panel .status-completed { background: #f1ecfc; color: var(--purple-dark); }
+
+/* ---------- "My booking requests" panel on My pets (Figma Home) ---------- */
+
+.dashboard .booking-rows { gap: 10px; margin-bottom: 14px; }
+
+.dashboard .booking-row,
+.dashboard .booking-row.status-accepted,
+.dashboard .booking-row.status-completed {
+  gap: 12px;
+  padding: 12px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--bg);
+}
+
+.dashboard .booking-row.status-pending { background: #fff8e6; }
+.dashboard .booking-row:hover { box-shadow: 0 0 0 1.5px var(--line-strong); }
+
+.dashboard .booking-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 19px;
+}
+
+.dashboard .booking-row-text strong { font-size: 16px; line-height: 1.55; }
+.dashboard .booking-row-text .muted { color: #6a5a54; font-size: 14px; line-height: 1.55; }
+
+.dashboard .status-pill {
+  padding: 4px 12px;
+  box-shadow: none;
+  font-size: 13px;
+}
+
+.dashboard .status-dot,
+.dashboard .status-pill.status-pending .status-dot { width: 8px; height: 8px; background: currentColor; }
+
+.dashboard .status-pill.status-pending { background: #ffe9b8; color: #6b4500; }
+.dashboard .status-pill.status-accepted { background: var(--success-bg); color: #14532d; }
+.dashboard .status-pill.status-declined { background: #efe9e6; color: #5a4038; }
+.dashboard .status-pill.status-completed { background: #dcebfa; color: #1f4e79; }
+.dashboard .status-pill.status-cancelled { background: #fbe3ea; color: #7a1f45; }

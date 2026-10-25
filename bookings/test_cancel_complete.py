@@ -73,8 +73,8 @@ class CancelBookingTests(SitterTestData):
         response = self.client.post(cancel_url(booking), follow=True)
         booking.refresh_from_db()
         self.assertEqual(booking.status, Status.CANCELLED)
-        self.assertContains(response, "Booking cancelled.")
-        self.assertContains(response, "You cancelled this booking")
+        self.assertContains(response, "Booking canceled.")
+        self.assertContains(response, "You canceled this booking")
 
     def test_cancelled_booking_stays_in_history(self):
         booking = self.make_booking(status=Status.CANCELLED)
@@ -90,7 +90,7 @@ class CancelBookingTests(SitterTestData):
         ):
             booking = self.make_booking(**fields)
             response = self.client.post(cancel_url(booking), follow=True)
-            self.assertContains(response, "can no longer be cancelled")
+            self.assertContains(response, "can no longer be canceled")
             booking.refresh_from_db()
             self.assertEqual(booking.status, fields["status"])
 
@@ -116,13 +116,13 @@ class CancelBookingTests(SitterTestData):
         self.client.force_login(self.sitter)
 
         detail = self.client.get(booking.get_absolute_url())
-        self.assertContains(detail, "Booking cancelled.")
+        self.assertContains(detail, "Booking canceled.")
         self.assertContains(detail, "status-cancelled")
 
         panel = self.client.get(
             reverse("bookings:caregiver_requests"), {"status": "all", "b": booking.pk}
         )
-        self.assertContains(panel, "cancelled this booking")
+        self.assertContains(panel, "canceled this booking")
         # A cancelled booking no longer counts as upcoming care.
         self.assertNotIn(booking, panel.context["upcoming"])
 

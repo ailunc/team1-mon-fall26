@@ -98,7 +98,7 @@ class ViewBookingStatusTests(BookingTestData):
         for status in Booking.Status:
             self.make_booking(status=status)
         response = self.client.get(LIST_URL)
-        for label in ("Pending", "Accepted", "Declined", "Cancelled", "Completed"):
+        for label in ("Pending", "Accepted", "Declined", "Canceled", "Completed"):
             self.assertContains(response, f"</span>{label}</span>")
 
     def test_pending_and_upcoming_accepted_are_active(self):
@@ -148,7 +148,7 @@ class ViewBookingStatusTests(BookingTestData):
     def test_cancelled_booking_says_so(self):
         booking = self.make_booking(status=Booking.Status.CANCELLED)
         response = self.client.get(booking.get_absolute_url())
-        self.assertContains(response, "Request cancelled.")
+        self.assertContains(response, "Request canceled.")
 
     def test_no_active_requests_message(self):
         self.past_booking(status=Booking.Status.COMPLETED)
