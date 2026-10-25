@@ -1812,9 +1812,9 @@ img.pet-initial-large {
   height: 16px;
 }
 
-.care-icon-feeding { background: #fcd9c4; color: #9a4a1c; }
-.care-icon-medication { background: #fbd0e0; color: #9b2c5a; }
-.care-icon-emergency { background: #d3e6f6; color: #1e4a73; }
+.care-icon-feeding { background: #ffd3b0; color: #7a3410; }
+.care-icon-medication { background: #ffc8d9; color: #7a1f45; }
+.care-icon-emergency { background: #bde0f5; color: #2d3a8c; }
 
 .field-hint {
   margin-top: 6px;
@@ -2340,5 +2340,326 @@ img.pet-initial-large {
 
   .dashboard .hero h1 {
     font-size: 36px;
+  }
+}
+
+/* ---------- Add / edit pet form (Figma "Create Pet Profile") ---------- */
+
+.page-pet-form {
+  max-width: 760px;
+  padding: 16px 24px 64px;
+}
+
+.page-pet-form .back-link {
+  gap: 6px;
+  min-height: 44px;
+  margin: 0 0 20px;
+  color: #5c3d2e;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.page-pet-form .page-heading {
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.page-pet-form .page-heading h1 {
+  margin-bottom: 0;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.22px;
+}
+
+.page-pet-form .page-heading p {
+  padding-top: 8px;
+  color: #6a5a54;
+  font-size: 16px;
+}
+
+.page-pet-form .bubbles {
+  width: 150px;
+  height: 96px;
+}
+
+.page-pet-form .bubbles .bubble-pink {
+  width: 70px;
+  height: 70px;
+  left: 0;
+  top: 18px;
+  bottom: auto;
+}
+
+.page-pet-form .bubbles .bubble-yellow {
+  width: 62px;
+  height: 58px;
+  left: 46px;
+  top: 0;
+}
+
+.page-pet-form .bubbles .bubble-mint {
+  width: 60px;
+  height: 60px;
+  left: 88px;
+  top: 34px;
+  right: auto;
+  bottom: auto;
+}
+
+.page-pet-form .bubbles .bubble-yellow .paw-icon {
+  position: absolute;
+  left: 14px;
+  top: 36px;
+  font-size: 34px;
+  transform: rotate(-12deg);
+}
+
+.page-pet-form .alert {
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  font-size: 16px;
+}
+
+.page-pet-form .alert-error {
+  color: #8c1d13;
+}
+
+.page-pet-form .alert-icon {
+  width: 30px;
+  height: 30px;
+  color: #8c1d13;
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.page-pet-form .form-card {
+  padding: 36px;
+  border: 0;
+  border-radius: 28px;
+  box-shadow: 0 0 0 1.5px #f0ddd5, 0 6px 0 #f0ddd5;
+}
+
+.page-pet-form .field {
+  margin-bottom: 28px;
+}
+
+.page-pet-form .field label,
+.page-pet-form .field legend,
+.page-pet-form .field-label {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.page-pet-form .field input[type="text"],
+.page-pet-form .field input[type="tel"],
+.page-pet-form .field input[type="number"],
+.page-pet-form .field select,
+.page-pet-form .field textarea {
+  min-height: 52px;
+  padding: 12px 16px;
+  border: 2px solid #ead3c9;
+  border-radius: 16px;
+  font-size: 16px;
+}
+
+.page-pet-form .field select {
+  padding-right: 40px;
+  background-position: right 16px center;
+}
+
+.page-pet-form .field ::placeholder {
+  color: #757575;
+}
+
+.page-pet-form .age-row {
+  gap: 10px;
+  max-width: 320px;
+}
+
+.page-pet-form .age-row input {
+  flex: 139 0 0;
+  min-width: 0;
+}
+
+.page-pet-form .age-row select {
+  flex: 171 0 0;
+  min-width: 0;
+}
+
+/* Photo */
+
+.page-pet-form .photo-field {
+  align-items: center;
+  gap: 20px;
+}
+
+.page-pet-form .photo-preview {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed #d9b3a3;
+  background: #fffcfa;
+  color: #8a6f64;
+}
+
+.page-pet-form .photo-preview .camera-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.page-pet-form .photo-preview.has-photo {
+  border: 3px solid #fff;
+}
+
+.page-pet-form .photo-label {
+  gap: 10px;
+}
+
+.page-pet-form .tag {
+  padding: 2px 10px;
+  background: #f8e6df;
+  color: #6a5a54;
+  font-size: 13px;
+}
+
+.page-pet-form .photo-controls label.btn {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  font-size: 15px;
+  box-shadow: 0 0 0 2px #ead3c9, 0 4px 0 #ead3c9;
+}
+
+.page-pet-form .photo-actions .camera-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.page-pet-form .photo-controls .photo-hint {
+  color: #6a5a54;
+  font-size: 13px;
+}
+
+/* Care sections */
+
+.page-pet-form .care-form-section {
+  margin-bottom: 28px;
+  padding: 22px 22px 8px;
+  border: 0;
+  border-radius: 22px;
+  background: #fff8f5;
+  box-shadow: 0 0 0 1.5px #f2e2da;
+}
+
+.page-pet-form .care-form-heading {
+  gap: 12px;
+}
+
+.page-pet-form .care-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.page-pet-form .care-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.page-pet-form .care-form-heading h2 {
+  font-size: 22px;
+  line-height: 1.55;
+}
+
+.page-pet-form .care-form-heading .tag {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.page-pet-form .care-form-note {
+  margin: 8px 0 14px;
+  color: #6a5a54;
+  font-size: 15px;
+}
+
+.page-pet-form .care-form-section .field {
+  margin-bottom: 14px;
+}
+
+.page-pet-form .care-form-section .field label {
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.page-pet-form .care-form-section input[type="text"],
+.page-pet-form .care-form-section input[type="tel"],
+.page-pet-form .care-form-section textarea {
+  background: #fff;
+}
+
+.page-pet-form .care-form-section textarea {
+  min-height: 90px;
+}
+
+/* Buttons */
+
+.page-pet-form .form-actions {
+  gap: 12px;
+  margin-top: 0;
+  padding-top: 4px;
+}
+
+.page-pet-form .form-actions .btn {
+  min-height: 50px;
+  padding: 0 26px;
+  font-size: 16px;
+}
+
+.page-pet-form .form-actions .btn-outline {
+  border: 0;
+  box-shadow: 0 0 0 2px #ead3c9, 0 4px 0 #ead3c9;
+}
+
+.page-pet-form .form-actions .btn-dark {
+  box-shadow: 0 4px 0 var(--orange);
+}
+
+/* Errors */
+
+.page-pet-form .field-error {
+  margin-top: 8px;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.page-pet-form .has-error input[type="text"],
+.page-pet-form .has-error input[type="tel"],
+.page-pet-form .has-error input[type="number"],
+.page-pet-form .has-error textarea {
+  border-color: #c2281b;
+  background: #fff6f5;
+}
+
+.page-pet-form .has-error .chip span {
+  border: 2px solid #c2281b;
+}
+
+@media (max-width: 560px) {
+  .page-pet-form {
+    padding: 8px 16px 48px;
+  }
+
+  .page-pet-form .page-heading h1 {
+    font-size: 34px;
+  }
+
+  .page-pet-form .form-card {
+    padding: 22px;
+  }
+
+  .page-pet-form .care-form-section {
+    padding: 18px 16px 4px;
   }
 }

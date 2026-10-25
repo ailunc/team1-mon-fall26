@@ -97,7 +97,7 @@
 }
 
 .has-error input[type="datetime-local"],
-.has-error select { border-color: var(--error); background: var(--error-input-bg); }
+.has-error select { border-color: var(--error); background-color: var(--error-input-bg); }
 
 /* ---------- Booking detail ---------- */
 

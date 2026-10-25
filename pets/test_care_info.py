@@ -63,9 +63,9 @@ class OwnerCareInfoTests(TestCase):
 
     def test_form_shows_the_care_sections(self):
         response = self.client.get(reverse("pets:create"))
-        for text in ("Food", "Portion", "Times", "Feeding notes", "Medication",
-                     "Dose", "Schedule", "Special care", "Vet phone",
-                     "Emergency contact"):
+        for text in ("Food", "Portion", "Feeding times", "Feeding notes", "Medication",
+                     "Dose", "Schedule", "Special care instructions", "Vet name &amp; clinic",
+                     "Vet phone", "Emergency contact", "Emergency phone"):
             self.assertContains(response, text)
 
     def test_owner_page_shows_care_information(self):

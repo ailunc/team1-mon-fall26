@@ -99,40 +99,40 @@ class PetForm(forms.ModelForm):
             "name": "Pet name",
             "food": "Food",
             "portion": "Portion",
-            "feeding_times": "Times",
+            "feeding_times": "Feeding times",
             "feeding_instructions": "Feeding notes",
             "medications": "Medication",
             "medication_dose": "Dose",
             "medication_schedule": "Schedule",
-            "special_care_instructions": "Special care",
-            "vet_name": "Vet",
+            "special_care_instructions": "Special care instructions",
+            "vet_name": "Vet name & clinic",
             "vet_phone": "Vet phone",
             "emergency_contact_name": "Emergency contact",
-            "emergency_contact_phone": "Phone",
+            "emergency_contact_phone": "Emergency phone",
         }
         widgets = {
             "photo": forms.FileInput(attrs={"accept": "image/*"}),
             "name": forms.TextInput(attrs={"placeholder": "e.g. Pepper"}),
-            "food": forms.TextInput(attrs={"placeholder": "e.g. Timothy hay + fresh greens"}),
-            "portion": forms.TextInput(attrs={"placeholder": "e.g. 1 cup greens"}),
+            "food": forms.TextInput(attrs={"placeholder": "e.g. Timothy hay, kibble brand"}),
+            "portion": forms.TextInput(attrs={"placeholder": "e.g. 1 cup"}),
             "feeding_times": forms.TextInput(attrs={"placeholder": "e.g. 8:00 AM, 6:00 PM"}),
             "feeding_instructions": forms.Textarea(
-                attrs={"rows": 2, "placeholder": "e.g. Refill the water bottle each visit. No fruit treats."}
+                attrs={"rows": 2, "placeholder": "Treats, water, foods to avoid"}
             ),
             # One line in the design, but kept as a text field so longer names fit.
-            "medications": forms.TextInput(attrs={"placeholder": "e.g. Probiotic (Bene-Bac)"}),
+            "medications": forms.TextInput(attrs={"placeholder": "e.g. Probiotic"}),
             "medication_dose": forms.TextInput(attrs={"placeholder": "e.g. 1 g"}),
-            "medication_schedule": forms.TextInput(attrs={"placeholder": "e.g. Once daily with morning greens"}),
+            "medication_schedule": forms.TextInput(attrs={"placeholder": "e.g. Once daily with breakfast"}),
             "special_care_instructions": forms.Textarea(
                 attrs={
                     "rows": 3,
-                    "placeholder": "Temperament, allergies, routines, anything else a caregiver should know",
+                    "placeholder": "Temperament, handling, health conditions, routines",
                 }
             ),
-            "vet_name": forms.TextInput(attrs={"placeholder": "e.g. Dr. Turkell, GoodVets"}),
-            "vet_phone": forms.TextInput(attrs={"placeholder": "(718) 555-0142", "type": "tel"}),
-            "emergency_contact_name": forms.TextInput(attrs={"placeholder": "e.g. Joy Wang (cousin)"}),
-            "emergency_contact_phone": forms.TextInput(attrs={"placeholder": "(917) 555-0187", "type": "tel"}),
+            "vet_name": forms.TextInput(attrs={"placeholder": "e.g. Dr. Patel, Brooklyn Vets"}),
+            "vet_phone": forms.TextInput(attrs={"placeholder": "(000) 000-0000", "type": "tel"}),
+            "emergency_contact_name": forms.TextInput(attrs={"placeholder": "Name and relationship"}),
+            "emergency_contact_phone": forms.TextInput(attrs={"placeholder": "(000) 000-0000", "type": "tel"}),
         }
         error_messages = {
             "name": {"required": "Enter your pet's name."},
