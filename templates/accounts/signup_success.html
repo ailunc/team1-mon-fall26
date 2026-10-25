@@ -7,24 +7,18 @@
 {% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=8">
 
 <div class="auth-screen auth-success-screen">
-    <a class="brand auth-home-link" href="{% url 'home' %}">
-    <span class="brand-mark">
-        {% include "partials/paw_icon.html" %}
-    </span>
-    <span class="brand-name">PawPal</span>
-    </a>
-    <span class="auth-orb auth-orb-lavender"></span>
-    <span class="auth-orb auth-orb-yellow"></span>
-    <span class="auth-orb auth-orb-pink"></span>
-    <span class="auth-orb auth-orb-mint"></span>
+    <span class="auth-circle auth-circle-lavender" aria-hidden="true"></span>
+    <span class="auth-circle auth-circle-yellow" aria-hidden="true"></span>
+    <span class="auth-circle auth-circle-pink" aria-hidden="true"></span>
+    <span class="auth-circle auth-circle-mint" aria-hidden="true"></span>
 
-    <section class="auth-panel auth-success-panel">
+    <section class="auth-panel auth-form-panel auth-success-panel">
 
         <div class="auth-brand">
-            <span class="auth-brand-icon">
+            <span class="auth-brand-icon" aria-hidden="true">
                 {% include "partials/paw_icon.html" %}
             </span>
             <span>PawPal</span>
@@ -32,8 +26,8 @@
 
         <div class="auth-success-check">
             <svg viewBox="0 0 24 24"
-                 width="28"
-                 height="28"
+                 width="34"
+                 height="34"
                  fill="none"
                  stroke="currentColor"
                  stroke-width="2.5"

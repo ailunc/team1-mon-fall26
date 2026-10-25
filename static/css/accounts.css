@@ -346,32 +346,33 @@
 }
 
 .auth-success-check {
-    width: 60px;
-    height: 60px;
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
-    background: #c9efdc;
+    background: #cdefdc;
     color: #175c3d;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 18px;
+    margin: 12px 0;
 }
 
 .auth-success-panel h1 {
     font-family: var(--font-display, "Fredoka", sans-serif);
-    font-size: clamp(26px, 4vw, 32px);
+    font-size: 36px;
     font-weight: 600;
-    line-height: 1.2;
+    line-height: 1.1;
+    letter-spacing: -0.18px;
     color: var(--ink, #1c1a1a);
-    margin: 0 0 10px;
+    margin: 0 0 12px;
 }
 
 .auth-success-description {
-    color: var(--muted, #857772);
-    font-size: 14px;
-    line-height: 1.65;
-    max-width: 320px;
-    margin: 0 0 24px;
+    color: #6a5a54;
+    font-size: 16px;
+    line-height: 1.55;
+    max-width: 380px;
+    margin: 0 0 20px;
 }
 
 .auth-success-button {
@@ -379,14 +380,15 @@
     justify-content: center;
     align-items: center;
     width: 100%;
-    min-height: 46px;
+    min-height: 52px;
+    margin-bottom: 12px;
     border-radius: 999px;
     background: #1c1a1a;
     color: #fff;
     border: 0;
-    border-bottom: 3px solid #f4a27a;
+    box-shadow: 0 4px 0 var(--orange);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
     text-decoration: none;
     transition: transform 0.2s, background 0.2s;
 }
