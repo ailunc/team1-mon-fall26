@@ -7,27 +7,23 @@
 {% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=8">
 
-<section class="auth-screen">
-    <a class="brand auth-home-link" href="{% url 'home' %}">
-    <span class="brand-mark">
-        {% include "partials/paw_icon.html" %}
-    </span>
-    <span class="brand-name">PawPal</span>
-  </a>
-  <span class="auth-circle auth-circle-lavender"></span>
-  <span class="auth-circle auth-circle-yellow"></span>
-  <span class="auth-circle auth-circle-pink"></span>
-  <span class="auth-circle auth-circle-mint"></span>
+<section class="auth-screen" aria-labelledby="signup-title">
+  <span class="auth-circle auth-circle-lavender" aria-hidden="true"></span>
+  <span class="auth-circle auth-circle-yellow" aria-hidden="true"></span>
+  <span class="auth-circle auth-circle-pink" aria-hidden="true"></span>
+  <span class="auth-circle auth-circle-mint" aria-hidden="true"></span>
 
-  <div class="auth-panel">
+  <div class="auth-panel auth-form-panel">
     <div class="auth-brand">
-      <span class="auth-brand-icon">🐾</span>
+      <span class="auth-brand-icon" aria-hidden="true">
+        {% include "partials/paw_icon.html" %}
+      </span>
       <span>PawPal</span>
     </div>
 
-    <h1>Create your account</h1>
+    <h1 id="signup-title">Create your account</h1>
     <p class="auth-subtitle">Join as a pet owner or caregiver.</p>
 
     <form method="post" novalidate>
@@ -35,16 +31,18 @@
 
       {% if form.errors %}
         <div class="auth-error-summary" role="alert">
-          <span>!</span>
-          {% if form.errors|length == 1 %}
-            Fix 1 field to continue.
-          {% else %}
-            Fix {{ form.errors|length }} fields to continue.
-          {% endif %}
+          <span aria-hidden="true">!</span>
+          <p>
+            {% if form.errors|length == 1 %}
+              Fix 1 field to continue.
+            {% else %}
+              Fix {{ form.errors|length }} fields to continue.
+            {% endif %}
+          </p>
         </div>
       {% endif %}
 
-      <div class="auth-form-field">
+      <div class="auth-form-field auth-role-field">
         <label>I'm a <span class="required">*</span></label>
 
         <div class="auth-role-options">
@@ -53,7 +51,11 @@
               {{ choice.tag }}
               <span class="auth-role-content">
                 <span class="auth-role-icon">
-                  {% if choice.data.value == "pet_owner" %}🐾{% else %}⌂{% endif %}
+                  {% if choice.data.value == "pet_owner" %}
+                    {% include "partials/paw_icon.html" %}
+                  {% else %}
+                    {% include "partials/home_heart_icon.html" %}
+                  {% endif %}
                 </span>
                 <span>{{ choice.choice_label }}</span>
               </span>
@@ -95,8 +97,11 @@
       <div class="auth-form-field">
         <label for="{{ form.email.id_for_label }}">Email <span class="required">*</span></label>
         {{ form.email }}
-        {% for error in form.email.errors %}
-          <p class="auth-field-error">{{ error }}</p>
+        {% for error in form.email.errors.as_data %}
+          <p class="auth-field-error">
+            {{ error.messages|join:" " }}
+            {% if error.code == "email_taken" %}<a href="{% url 'login' %}">Log in</a>{% endif %}
+          </p>
         {% endfor %}
       </div>
 
@@ -118,10 +123,6 @@
 
       <button type="submit" class="auth-submit">Create account</button>
     </form>
-
-    <div class="auth-divider"><span>or</span></div>
-
-    <p class="auth-oauth-note">Google sign-in coming soon</p>
 
     <p class="auth-footer">
       Already have an account?

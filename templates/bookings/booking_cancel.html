@@ -15,7 +15,7 @@
         {{ booking.start_time|date:"D, M j, g:i A" }} to {{ booking.end_time|date:"D, M j, g:i A" }}.
       </p>
       <p class="muted">
-        {{ booking.caregiver.name }} will see this booking as Cancelled. You can't undo this, but the booking stays in your history.
+        {{ booking.caregiver.name }} will see this booking as Canceled. You can't undo this, but the booking stays in your history.
       </p>
       <form method="post" class="respond-actions">
         {% csrf_token %}

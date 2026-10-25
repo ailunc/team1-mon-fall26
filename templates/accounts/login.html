@@ -7,21 +7,15 @@
 {% block main_class %}auth-main{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'css/accounts.css' %}?v=8">
 
 <section class="auth-screen" aria-labelledby="login-title">
-    <a class="brand auth-home-link" href="{% url 'home' %}">
-    <span class="brand-mark">
-        {% include "partials/paw_icon.html" %}
-    </span>
-    <span class="brand-name">PawPal</span>
-`   </a>
     <span class="auth-circle auth-circle-lavender" aria-hidden="true"></span>
     <span class="auth-circle auth-circle-yellow" aria-hidden="true"></span>
     <span class="auth-circle auth-circle-pink" aria-hidden="true"></span>
     <span class="auth-circle auth-circle-mint" aria-hidden="true"></span>
 
-    <div class="auth-panel auth-login-panel">
+    <div class="auth-panel auth-form-panel">
 
         <div class="auth-brand">
             <span class="auth-brand-icon" aria-hidden="true">
@@ -32,7 +26,7 @@
 
         <h1 id="login-title">Welcome back!</h1>
         <p class="auth-subtitle">
-            Log in to continue caring for your furry friends.
+            Good to see you again.
         </p>
 
         <form method="post" novalidate>
@@ -41,17 +35,11 @@
             {% if form.non_field_errors %}
                 <div class="auth-error-summary" role="alert">
                     <span aria-hidden="true">!</span>
-                    <div>
-                        <strong>We couldn't log you in.</strong>
-                        <p>
-                            That username and password combination
-                            doesn't match our records.
-                        </p>
-                    </div>
+                    <p>Incorrect username or password.</p>
                 </div>
             {% endif %}
 
-            <div class="auth-form-field">
+            <div class="auth-form-field{% if form.non_field_errors %} auth-form-field--error{% endif %}">
                 <label for="{{ form.username.id_for_label }}">
                     Username <span class="required">*</span>
                 </label>
@@ -62,7 +50,7 @@
                 {% endfor %}
             </div>
 
-            <div class="auth-form-field">
+            <div class="auth-form-field{% if form.non_field_errors %} auth-form-field--error{% endif %}">
                 <label for="{{ form.password.id_for_label }}">
                     Password <span class="required">*</span>
                 </label>
@@ -82,13 +70,9 @@
             </button>
         </form>
 
-        <div class="auth-divider"><span>or</span></div>
-
-        <p class="auth-oauth-note">Google sign-in coming soon</p>
-
         <p class="auth-footer">
-            Don't have an account?
-            <a href="{% url 'signup' %}">Sign up</a>
+            New to PawPal?
+            <a href="{% url 'signup' %}">Create an account</a>
         </p>
 
     </div>

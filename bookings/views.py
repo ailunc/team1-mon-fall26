@@ -76,19 +76,25 @@ def booking_create(request):
 ACTIVE_STATUSES = (Booking.Status.PENDING, Booking.Status.ACCEPTED)
 
 
+def split_owner_bookings(user):
+    """The owner's bookings as (active, history): soonest active first, newest history first."""
+    bookings = owner_bookings(user)
+    active_filter = Q(status__in=ACTIVE_STATUSES, end_time__gt=timezone.now())
+    return (
+        bookings.filter(active_filter).order_by("start_time"),
+        # Completed, declined and cancelled requests, and care that already ended.
+        bookings.exclude(active_filter).order_by("-start_time"),
+    )
+
+
 @login_required
 def booking_list(request):
     """Story #41: the owner's requests with their status, split into active and history."""
-    bookings = owner_bookings(request.user)
-    active_filter = Q(status__in=ACTIVE_STATUSES, end_time__gt=timezone.now())
+    active, history = split_owner_bookings(request.user)
     return render(
         request,
         "bookings/booking_list.html",
-        {
-            "active": bookings.filter(active_filter).order_by("start_time"),
-            # Completed, declined and cancelled requests, and care that already ended.
-            "history": bookings.exclude(active_filter).order_by("-start_time"),
-        },
+        {"active": active, "history": history},
     )
 
 
@@ -135,7 +141,7 @@ def booking_cancel(request, pk):
     """Story #43: the owner confirms, then the booking becomes Cancelled."""
     booking = get_object_or_404(owner_bookings(request.user), pk=pk)
     if not can_cancel(booking):
-        messages.error(request, "This booking can no longer be cancelled.")
+        messages.error(request, "This booking can no longer be canceled.")
         return redirect(booking)
 
     if request.method == "POST":
@@ -146,10 +152,10 @@ def booking_cancel(request, pk):
         if updated:
             messages.success(
                 request,
-                f"Booking cancelled. {booking.caregiver.name} will see it as Cancelled.",
+                f"Booking canceled. {booking.caregiver.name} will see it as Canceled.",
             )
         else:
-            messages.error(request, "This booking can no longer be cancelled.")
+            messages.error(request, "This booking can no longer be canceled.")
         return redirect(booking)
 
     return render(request, "bookings/booking_cancel.html", {"booking": booking})

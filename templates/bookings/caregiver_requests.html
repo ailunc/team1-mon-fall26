@@ -93,7 +93,7 @@
           {% elif b.status == "pending" %}
             <p class="muted request-closed">This request's start time has passed.</p>
           {% elif b.status == "cancelled" %}
-            <p class="muted request-closed">{{ b.owner|first_name }} cancelled this booking on {{ b.updated_at|date:"M j, g:i A" }}.</p>
+            <p class="muted request-closed">{{ b.owner|first_name }} canceled this booking on {{ b.updated_at|date:"M j, g:i A" }}.</p>
           {% elif b.status == "completed" %}
             <p class="muted request-closed">You marked this booking as completed on {{ b.updated_at|date:"M j, g:i A" }}.</p>
           {% endif %}

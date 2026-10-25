@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="{% static 'css/style.css' %}" rel="stylesheet">
-  <link href="{% static 'css/bookings.css' %}" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}?v=6" rel="stylesheet">
+  <link href="{% static 'css/bookings.css' %}?v=4" rel="stylesheet">
 </head>
 <body>
   {% block site_header %}
@@ -24,10 +24,15 @@
     </a>
 
     <nav class="main-nav" aria-label="Main">
-      {% if user.caregiver_profile %}
+      {# A caregiver is anyone who signed up as one, even before they create their caregiver profile. #}
+      {% if user.caregiver_profile or user.account_profile.role == "caregiver" %}
         {# Caregivers get their own navigation, as in the Figma caregiver screens. #}
         <a href="{% url 'bookings:caregiver_requests' %}" class="{% if section == 'bookings' %}active{% endif %}">Requests</a>
-        <a href="{% url 'caregiver' user.caregiver_profile.pk %}" class="{% if request.resolver_match.url_name == 'caregiver' %}active{% endif %}">My profile</a>
+        {% if user.caregiver_profile %}
+          <a href="{% url 'caregiver' user.caregiver_profile.pk %}" class="{% if request.resolver_match.url_name == 'caregiver' %}active{% endif %}">My profile</a>
+        {% else %}
+          <a href="{% url 'create_caregiver_profile' %}" class="{% if request.resolver_match.url_name == 'create_caregiver_profile' %}active{% endif %}">My profile</a>
+        {% endif %}
       {% else %}
         <a href="{% url 'pets:list' %}" class="{% if section == 'pets' %}active{% endif %}">My pets</a>
         <a href="{{ find_caregivers_url|default:'#' }}" class="{% if section == 'caregivers' %}active{% endif %}">Find caregivers</a>
@@ -39,7 +44,7 @@
       {% if user.is_authenticated %}
         <details class="account-menu">
           <summary>
-            <span class="account-role">{% if user.caregiver_profile %}Caregiver{% else %}Pet owner{% endif %}</span>
+            <span class="account-role">{% if user.caregiver_profile or user.account_profile.role == "caregiver" %}Caregiver{% else %}Pet owner{% endif %}</span>
             <span class="avatar">{% if user.first_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}{{ user.username|slice:":2"|upper }}{% endif %}</span>
           </summary>
           <div class="account-dropdown">

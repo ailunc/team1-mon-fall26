@@ -239,6 +239,16 @@ class BookingPanelTests(BookingTestData):
         self.assertContains(response, "Biscuit · Dog walking")
         self.assertContains(response, reverse("bookings:booking_create"))
 
+    def test_panel_splits_upcoming_and_past(self):
+        upcoming = self.make_booking()
+        past = self.make_booking(status=Booking.Status.DECLINED)
+        self.client.force_login(self.owner)
+        response = self.client.get(reverse("pets:list"))
+        self.assertContains(response, "Upcoming")
+        self.assertContains(response, "Past")
+        self.assertEqual(list(response.context["upcoming"]), [upcoming])
+        self.assertEqual(list(response.context["past"]), [past])
+
     def test_nav_links_to_my_requests(self):
         self.client.force_login(self.owner)
         response = self.client.get(reverse("pets:list"))

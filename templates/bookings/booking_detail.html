@@ -64,7 +64,7 @@
         {% elif booking.status == "cancelled" %}
           <div class="alert alert-info booking-outcome" role="status">
             <span class="alert-icon" aria-hidden="true">!</span>
-            <span><strong>Booking cancelled.</strong> {{ booking.owner.get_full_name|default:booking.owner.username }} cancelled this booking on {{ booking.updated_at|date:"M j, g:i A" }}. You don't need to provide this care.</span>
+            <span><strong>Booking canceled.</strong> {{ booking.owner.get_full_name|default:booking.owner.username }} canceled this booking on {{ booking.updated_at|date:"M j, g:i A" }}. You don't need to provide this care.</span>
           </div>
         {% endif %}
       {% elif booking.status == "pending" %}
@@ -88,7 +88,7 @@
       {% elif booking.status == "cancelled" %}
         <div class="alert alert-info booking-outcome" role="status">
           <span class="alert-icon" aria-hidden="true">!</span>
-          <span><strong>Request cancelled.</strong> You cancelled this booking on {{ booking.updated_at|date:"M j, g:i A" }}. {{ booking.caregiver.name }} can see it was cancelled.</span>
+          <span><strong>Request canceled.</strong> You canceled this booking on {{ booking.updated_at|date:"M j, g:i A" }}. {{ booking.caregiver.name }} can see it was canceled.</span>
         </div>
       {% endif %}
 

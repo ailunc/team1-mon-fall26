@@ -2,11 +2,11 @@
 
 {% block title %}{% if pet %}Edit {{ pet.name }}{% else %}Add a new pet{% endif %} · PawPal{% endblock %}
 
-{% block main_class %}page page-narrow{% endblock %}
+{% block main_class %}page page-narrow page-pet-form{% endblock %}
 
 {% block content %}
   <a class="back-link" href="{% if pet %}{{ pet.get_absolute_url }}{% else %}{% url 'pets:list' %}{% endif %}">
-    <span aria-hidden="true">&lsaquo;</span> {% if pet %}Back to {{ pet.name }}{% else %}Back to my pets{% endif %}
+    {% include "partials/chevron_left_icon.html" %} {% if pet %}Back to {{ pet.name }}{% else %}Back to my pets{% endif %}
   </a>
 
   <div class="page-heading">
@@ -104,7 +104,9 @@
         {% include "pets/partials/care_field.html" with field=form.food %}
         {% include "pets/partials/care_field.html" with field=form.portion %}
       </div>
-      {% include "pets/partials/care_field.html" with field=form.feeding_times %}
+      <div class="field-pair">
+        {% include "pets/partials/care_field.html" with field=form.feeding_times %}
+      </div>
       {% include "pets/partials/care_field.html" with field=form.feeding_instructions %}
     </section>
 
@@ -114,12 +116,14 @@
         <h2 id="care-heading">Medication &amp; special care</h2>
         <span class="tag">Optional</span>
       </div>
-      <p class="care-form-note">Leave the medication blank if {% if pet %}{{ pet.name }} doesn't{% else %}your pet doesn't{% endif %} take any.</p>
+      <p class="care-form-note">Leave medication blank if {% if pet %}{{ pet.name }} doesn't{% else %}your pet doesn't{% endif %} take any.</p>
       <div class="field-pair">
         {% include "pets/partials/care_field.html" with field=form.medications %}
         {% include "pets/partials/care_field.html" with field=form.medication_dose %}
       </div>
-      {% include "pets/partials/care_field.html" with field=form.medication_schedule %}
+      <div class="field-pair">
+        {% include "pets/partials/care_field.html" with field=form.medication_schedule %}
+      </div>
       {% include "pets/partials/care_field.html" with field=form.special_care_instructions %}
     </section>
 
