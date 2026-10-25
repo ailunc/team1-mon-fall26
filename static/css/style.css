@@ -391,8 +391,11 @@ a {
   color: var(--error);
 }
 
+/* Rounded dark-red "!" from the Figma alerts. */
 .alert-error .alert-icon {
-  color: var(--ink);
+  color: #8c1d13;
+  font-family: var(--font-display);
+  font-weight: 600;
 }
 
 .alert-success {

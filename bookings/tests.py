@@ -8,13 +8,20 @@ from django.urls import reverse
 from django.utils import timezone
 
 from caregivers.geocoding import Location
-from caregivers.models import CaregiverProfile, ServiceType
+from caregivers.models import CaregiverProfile, CaregiverService, ServiceType
 from pets.models import Pet, PetType
 
 from .forms import BookingRequestForm
 from .models import Booking
 
-FMT = "%Y-%m-%dT%H:%M"
+def times(start, end):
+    """Form data for a start and an end, each as a date box and a time box."""
+    return {
+        "start_time_0": start.strftime("%Y-%m-%d"),
+        "start_time_1": start.strftime("%H:%M"),
+        "end_time_0": end.strftime("%Y-%m-%d"),
+        "end_time_1": end.strftime("%H:%M"),
+    }
 
 
 class BookingTestData(TestCase):
@@ -41,8 +48,7 @@ class BookingTestData(TestCase):
             "pet": self.pet.pk,
             "caregiver": self.caregiver.pk,
             "service_type": self.walk.pk,
-            "start_time": start.strftime(FMT),
-            "end_time": (start + timedelta(hours=1)).strftime(FMT),
+            **times(start, start + timedelta(hours=1)),
             "notes": "Please bring treats.",
         }
         data.update(overrides)
@@ -89,7 +95,8 @@ class BookingRequestFormTests(BookingTestData):
 
     def test_pet_caregiver_service_and_times_are_required(self):
         form = self.make_form(
-            pet="", caregiver="", service_type="", start_time="", end_time=""
+            pet="", caregiver="", service_type="",
+            start_time_0="", start_time_1="", end_time_0="", end_time_1="",
         )
         self.assertFalse(form.is_valid())
         for field in ("pet", "caregiver", "service_type", "start_time", "end_time"):
@@ -97,25 +104,19 @@ class BookingRequestFormTests(BookingTestData):
 
     def test_start_time_must_be_in_future(self):
         past = timezone.localtime() - timedelta(hours=1)
-        form = self.make_form(
-            start_time=past.strftime(FMT),
-            end_time=(past + timedelta(hours=2)).strftime(FMT),
-        )
+        form = self.make_form(**times(past, past + timedelta(hours=2)))
         self.assertFalse(form.is_valid())
         self.assertIn("start_time", form.errors)
 
     def test_times_are_entered_in_local_time(self):
         # A time later today in New York must be accepted (not read as UTC).
         soon = timezone.localtime() + timedelta(minutes=30)
-        form = self.make_form(
-            start_time=soon.strftime(FMT),
-            end_time=(soon + timedelta(hours=1)).strftime(FMT),
-        )
+        form = self.make_form(**times(soon, soon + timedelta(hours=1)))
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_end_time_must_be_after_start(self):
-        data = self.form_data()
-        form = self.make_form(end_time=data["start_time"])
+        start = timezone.localtime() + timedelta(days=2)
+        form = self.make_form(**times(start, start))
         self.assertFalse(form.is_valid())
         self.assertIn("end_time", form.errors)
 
@@ -148,6 +149,18 @@ class BookingCreateViewTests(BookingTestData):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertIn("/accounts/login/", response["Location"])
+
+    def test_form_only_offers_the_caregivers_services(self):
+        CaregiverService.objects.create(
+            caregiver=self.caregiver, service_type=self.walk, price=Decimal("25"), is_active=True
+        )
+        self.client.force_login(self.owner)
+        response = self.client.get(self.url, {"caregiver": self.caregiver.pk})
+        self.assertEqual(
+            response.context["services_by_caregiver"], {self.caregiver.pk: [self.walk.pk]}
+        )
+        self.assertContains(response, "Back to find caregivers")
+        self.assertContains(response, "Note for the caregiver")
 
     def test_get_shows_form_with_own_pets_only(self):
         self.client.force_login(self.owner)

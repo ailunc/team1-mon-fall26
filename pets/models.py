@@ -80,6 +80,19 @@ class Pet(models.Model):
         return f"{months} month{'s' if months != 1 else ''}"
 
     @property
+    def age_short(self):
+        """Compact age for small cards, e.g. "2 yrs", "1 yr" or "5 mos"."""
+        months = self.age_months
+        if months is None:
+            return ""
+        if months >= 12:
+            years = months // 12
+            return f"{years} yr{'s' if years != 1 else ''}"
+        if months == 0:
+            return "Under 1 mo"
+        return f"{months} mo{'s' if months != 1 else ''}"
+
+    @property
     def has_feeding_info(self):
         return any([self.food, self.portion, self.feeding_times, self.feeding_instructions])
 

@@ -59,7 +59,11 @@ def booking_create(request):
             if request.GET.get(key, "").isdigit()
         }
         form = BookingRequestForm(initial=initial, owner=request.user)
-    return render(request, "bookings/booking_form.html", {"form": form})
+    return render(
+        request,
+        "bookings/booking_form.html",
+        {"form": form, "services_by_caregiver": form.services_by_caregiver()},
+    )
 
 
 # Requests that still need attention or care that hasn't happened yet.
