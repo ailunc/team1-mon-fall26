@@ -10,6 +10,9 @@ from .search import (
     caregivers_near,
     neighborhood,
     neighborhoods,
+    offered_service_types,
+    offering_service,
+    put_service_first,
     searchable_caregivers,
 )
 
@@ -259,16 +262,48 @@ def edit_caregiver_service(request, pk, service_id):
     )
 
 
+# Availability filter options (#35); "available" is the default.
+AVAILABILITY_CHOICES = {
+    "available": "Taking new bookings",
+    "any": "Any availability",
+}
+
+
 @login_required
 def caregiver_list(request):
-    """Story #33: owners search caregivers by location and see them on a map."""
-    caregivers = searchable_caregivers(request.user)
+    """Story #33: owners search caregivers by location and see them on a map.
+
+    Results can be filtered by service (#34) and availability (#35).
+    """
+    notice = ""
+
+    # Availability (#35): taking new bookings, as set on the caregiver's profile.
+    availability = request.GET.get("availability", "available")
+    if availability not in AVAILABILITY_CHOICES:
+        availability = "available"
+    caregivers = searchable_caregivers(
+        request.user, available_only=availability == "available"
+    )
+
+    # Service (#34): only caregivers who list it.
+    service_types = offered_service_types()
+    service_code = request.GET.get("service", "").strip()
+    service = None
+    if service_code:
+        service = next(
+            (st for st in service_types if str(st.pk) == service_code), None
+        )
+        if service is None:
+            notice = "Choose a service from the list."
+            service_code = ""
+        else:
+            caregivers = offering_service(caregivers, service)
+
     area_code = request.GET.get("area", "").strip()
     address = request.GET.get("address", "").strip()
     latitude, longitude = _coordinates(request.GET)
 
     origin = None  # where the owner is searching from: {"label", "latitude", "longitude"}
-    notice = ""
     results = None
 
     if latitude is not None and address:
@@ -309,6 +344,8 @@ def caregiver_list(request):
         results = caregivers_near(caregivers, origin["latitude"], origin["longitude"])
     elif results is None:
         results = list(caregivers)
+    if service is not None:
+        put_service_first(results, service)
 
     map_points = [
         {
@@ -332,6 +369,13 @@ def caregiver_list(request):
             "origin": origin,
             "notice": notice,
             "searched": bool(address or area_code),
+            "service_types": service_types,
+            "service": service,
+            "service_code": service_code,
+            "availability": availability,
+            "availability_choices": AVAILABILITY_CHOICES.items(),
+            "filtered": bool(service or availability != "available"),
+            "clear_filters_url": _without_filters(request.GET),
             "map_data": {
                 "points": map_points,
                 "origin": (
@@ -345,6 +389,15 @@ def caregiver_list(request):
             },
         },
     )
+
+
+def _without_filters(params):
+    """This search's URL with the service and availability filters removed."""
+    kept = params.copy()
+    for key in ("service", "availability"):
+        kept.pop(key, None)
+    query = kept.urlencode()
+    return f"{reverse('caregiver_list')}?{query}" if query else reverse("caregiver_list")
 
 
 def _coordinates(params):

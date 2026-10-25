@@ -78,6 +78,12 @@
     });
   }
 
+  // ---------- Filters ----------
+  // Changing a filter runs the search again right away.
+  document.querySelectorAll("[data-autosubmit]").forEach(function (select) {
+    select.addEventListener("change", function () { form.submit(); });
+  });
+
   // ---------- Map ----------
   var mapElement = document.getElementById("caregiver-map");
   var data = JSON.parse(document.getElementById("caregiver-map-data").textContent);

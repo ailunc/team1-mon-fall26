@@ -51,10 +51,11 @@ def booking_create(request):
             )
             return redirect(booking)
     else:
-        # Pre-select a caregiver or pet when coming from their profile page.
+        # Pre-select a caregiver, pet or service when coming from their profile
+        # page or a filtered caregiver search.
         initial = {
             key: request.GET[key]
-            for key in ("caregiver", "pet")
+            for key in ("caregiver", "pet", "service_type")
             if request.GET.get(key, "").isdigit()
         }
         form = BookingRequestForm(initial=initial, owner=request.user)
