@@ -66,6 +66,15 @@ class CaregiverProfile(models.Model):
     pet_care_skills = models.JSONField(default=list, blank=True)
 
     @property
+    def initials(self):
+        """Up to two initials for the avatar, e.g. "CS" for Chloe Shih."""
+        return "".join(part[0] for part in self.name.split()[:2]).upper()
+
+    @property
+    def first_name(self):
+        return self.name.split()[0] if self.name.split() else self.name
+
+    @property
     def experience_label(self):
         """Years of experience as its range, e.g. "3–5 years"."""
         return dict(EXPERIENCE_CHOICES)[experience_range(self.years_of_experience)]
@@ -82,6 +91,18 @@ class ServiceType(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def icon(self):
+        """Which round icon the profile page shows: "walk", "home", "feeding" or "paw"."""
+        name = self.name.lower()
+        if any(word in name for word in ("walk", "daycare", "training")):
+            return "walk"
+        if any(word in name for word in ("drop-in", "sitting", "overnight", "boarding")):
+            return "home"
+        if any(word in name for word in ("feeding", "medication")):
+            return "feeding"
+        return "paw"
 
 
 class CaregiverService(models.Model):
