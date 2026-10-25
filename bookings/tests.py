@@ -14,6 +14,7 @@ from pets.models import Pet, PetType
 from .forms import BookingRequestForm
 from .models import Booking
 
+
 def times(start, end):
     """Form data for a start and an end, each as a date box and a time box."""
     return {
