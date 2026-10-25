@@ -2,11 +2,11 @@
 
 {% block title %}{{ pet.name }} · PawPal{% endblock %}
 
-{% block main_class %}page page-medium page-pet{% endblock %}
+{% block main_class %}page page-medium page-pet page-pet-profile{% endblock %}
 
 {% block content %}
   {% url 'caregiver_list' as find_caregivers_url %}
-  <a class="back-link" href="{% url 'pets:list' %}"><span aria-hidden="true">&lsaquo;</span> Back to my pets</a>
+  <a class="back-link" href="{% url 'pets:list' %}">{% include "partials/chevron_left_icon.html" %} Back to my pets</a>
 
   <article class="card pet-profile theme-{{ pet.theme }}">
     <header class="pet-profile-header">
@@ -19,7 +19,7 @@
         <p>{{ pet.pet_type }}{% if pet.age_display %} · {{ pet.age_display }} old{% endif %}</p>
       </div>
       <a class="btn btn-light btn-small" href="{% url 'pets:edit' pet.pk %}">
-        <span aria-hidden="true">&#9998;</span> Edit profile
+        {% include "partials/pencil_icon.html" %} Edit profile
       </a>
       <span class="deco deco-blob" aria-hidden="true"></span>
       <span class="deco deco-sun" aria-hidden="true"></span>

@@ -76,11 +76,13 @@ class OwnerCareInfoTests(TestCase):
             self.assertContains(response, value)
         self.assertContains(response, 'href="tel:(718)555-0142"')
 
-    def test_owner_page_offers_to_add_missing_information(self):
+    def test_owner_page_says_when_information_is_missing(self):
         pet = Pet.objects.create(owner=self.owner, name="Milo", pet_type=self.dog)
         response = self.client.get(pet.get_absolute_url())
         self.assertContains(response, "No feeding instructions yet.")
-        self.assertContains(response, reverse("pets:edit", args=[pet.pk]) + "#feeding-heading")
+        self.assertContains(response, "No emergency or vet contacts yet.")
+        self.assertNotContains(response, "Add them")
+        self.assertNotContains(response, "Add special care notes")
 
     def test_owner_can_edit_care_information_later(self):
         pet = Pet.objects.create(owner=self.owner, name="Milo", pet_type=self.dog, **CARE_INFO)
