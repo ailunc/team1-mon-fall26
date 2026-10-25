@@ -350,7 +350,7 @@ class HouseNumberGuardTests(SimpleTestCase):
 
 class LocationConfirmationTests(TestCase):
     @mock.patch("caregivers.forms.geocode")
-    def test_caregiver_sees_where_they_were_placed(self, geocode_mock):
+    def test_profile_shows_the_neighborhood_without_a_placement_message(self, geocode_mock):
         geocode_mock.return_value = Location(
             latitude=Decimal("40.729"), longitude=Decimal("-73.997"),
             neighborhood="Greenwich Village", borough="Manhattan",
@@ -366,5 +366,5 @@ class LocationConfirmationTests(TestCase):
             },
             follow=True,
         )
-        self.assertContains(response, "We placed you at 70 Washington Square South")
+        self.assertNotContains(response, "We placed you at")
         self.assertContains(response, "Greenwich Village, Manhattan")

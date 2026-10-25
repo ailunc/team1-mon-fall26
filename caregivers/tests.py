@@ -204,7 +204,8 @@ class CaregiverProfileDetailViewTests(CaregiverTestData):
         self.assertContains(response, "Chloe Shih")
         self.assertContains(response, "Brooklyn")
         self.assertContains(response, "Lifelong dog person.")
-        self.assertContains(response, "4 years caring for pets")
+        # 4 years shows as its range.
+        self.assertContains(response, "3–5 years caring for pets")
         self.assertContains(response, "Dog")
 
     def test_only_active_priced_services_are_listed(self):
@@ -214,9 +215,24 @@ class CaregiverProfileDetailViewTests(CaregiverTestData):
         response = self.client.get(reverse("caregiver", args=[caregiver.pk]))
         listings = list(response.context["service_listings"])
         self.assertEqual([s.service_type for s in listings], [self.walking])
-        self.assertContains(response, "$25.00")
-        # Both services still show under "Services Provided".
+        # Prices are hidden on the profile for now.
+        self.assertNotContains(response, "$25.00")
+        # Both services still show under "Services".
         self.assertEqual(len(response.context["provided_services"]), 2)
+
+    def test_profile_shows_skills_and_first_name(self):
+        caregiver = self.make_caregiver(pet_care_skills=["leash_training"])
+        response = self.client.get(reverse("caregiver", args=[caregiver.pk]))
+        self.assertContains(response, "Leash training")
+        self.assertContains(response, "Request care from Chloe")
+        self.assertContains(response, "CS")
+
+    def test_own_profile_hides_the_request_card(self):
+        caregiver = self.make_caregiver(user=self.user)
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("caregiver", args=[caregiver.pk]))
+        self.assertNotContains(response, "Request care from")
+        self.assertContains(response, "Edit profile")
 
     def test_missing_profile_returns_404(self):
         response = self.client.get(reverse("caregiver", args=[999]))

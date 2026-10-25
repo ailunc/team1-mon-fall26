@@ -29,13 +29,13 @@
         {# Caregivers get their own navigation, as in the Figma caregiver screens. #}
         <a href="{% url 'bookings:caregiver_requests' %}" class="{% if section == 'bookings' %}active{% endif %}">Requests</a>
         {% if user.caregiver_profile %}
-          <a href="{% url 'caregiver' user.caregiver_profile.pk %}" class="{% if request.resolver_match.url_name == 'caregiver' %}active{% endif %}">My profile</a>
+          <a href="{% url 'caregiver' user.caregiver_profile.pk %}" class="{% with page=request.resolver_match.url_name %}{% if page == 'caregiver' or page == 'edit_caregiver_profile' or page == 'services' or page == 'add_caregiver_service' or page == 'edit_caregiver_service' or page == 'delete_caregiver_service' %}active{% endif %}{% endwith %}">My profile</a>
         {% else %}
           <a href="{% url 'create_caregiver_profile' %}" class="{% if request.resolver_match.url_name == 'create_caregiver_profile' %}active{% endif %}">My profile</a>
         {% endif %}
       {% else %}
         <a href="{% url 'pets:list' %}" class="{% if section == 'pets' %}active{% endif %}">My pets</a>
-        <a href="{{ find_caregivers_url|default:'#' }}" class="{% if section == 'caregivers' %}active{% endif %}">Find caregivers</a>
+        <a href="{{ find_caregivers_url|default:'#' }}" class="{% if section == 'caregivers' or request.resolver_match.url_name == 'caregiver_list' or request.resolver_match.url_name == 'caregiver' %}active{% endif %}">Find caregivers</a>
         <a href="{{ my_requests_url|default:'#' }}" class="{% if section == 'bookings' %}active{% endif %}">My requests</a>
       {% endif %}
     </nav>

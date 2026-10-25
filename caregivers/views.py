@@ -70,14 +70,6 @@ def create_caregiver_profile(request):
             caregiver.user = request.user
             caregiver.save()
             form.save_m2m()
-            location = form.matched_location
-            if location is not None:
-                messages.info(
-                    request,
-                    f"We placed you at {location.label.split(',')[0].title()}"
-                    f" ({location.neighborhood}, {location.borough}). "
-                    "If that's not right, edit your address.",
-                )
             if form.geocoding_unavailable:
                 messages.warning(
                     request,
@@ -127,14 +119,6 @@ def edit_caregiver_profile(request, pk):
 
         if form.is_valid():
             caregiver = form.save()
-            location = form.matched_location
-            if location is not None:
-                messages.info(
-                    request,
-                    f"We placed you at {location.label.split(',')[0].title()}"
-                    f" ({location.neighborhood}, {location.borough}). "
-                    "If that's not right, edit your address.",
-                )
             if form.geocoding_unavailable:
                 messages.warning(
                     request,
@@ -221,6 +205,8 @@ def caregiver_profile_detail(request, pk):
         "caregivers/profile_detail.html",
         {
             "caregiver": caregiver,
+            # A caregiver viewing their own profile gets Edit, not the request card.
+            "is_own": bool(caregiver.user_id) and caregiver.user_id == request.user.id,
             "provided_services": provided_services,
             "service_listings": service_listings,
         }
