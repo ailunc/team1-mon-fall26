@@ -1,45 +1,88 @@
-/* Find caregivers page. Builds on style.css (cards, buttons, tags, fields). */
+/* Find caregivers page, matching the Figma "Search Caregivers" frames.
+   Builds on style.css (cards, buttons, tags, alerts). */
 
-.search-card {
-  padding: 18px 20px;
-  margin-bottom: 16px;
+.search-page { max-width: 1040px; margin: 0 auto; }
+
+/* ---------- Purple search card ---------- */
+
+.search-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 30px 22px;
+  margin-bottom: 18px;
+  background: var(--purple);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 5px 0 var(--purple-dark);
 }
 
-.search-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-}
+.search-hero h1 { position: relative; color: #fff; font-size: 34px; }
+.hero-lead { position: relative; margin: 6px 0 18px; color: rgba(255, 255, 255, 0.82); font-size: 13px; }
 
-/* Service (#34) and availability (#35) filters, under the location search. */
-.filter-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-.filter-field { flex: 0 1 240px; }
-.filter-clear { padding-bottom: 10px; font-size: 13px; }
+.hero-dot { position: absolute; border-radius: 50%; pointer-events: none; }
+.hero-dot-yellow { width: 150px; height: 150px; top: -48px; right: -36px; background: var(--yellow-soft); }
+.hero-dot-pink { width: 56px; height: 56px; top: 24px; right: 128px; background: var(--pink); }
+.hero-dot-orange { width: 26px; height: 26px; top: 92px; right: 112px; background: var(--orange); }
 
-.search-card .field { margin: 0; }
-.search-address { position: relative; flex: 3; }
-.search-area { flex: 2; }
-.search-or { padding-bottom: 12px; font-size: 13px; }
-.search-actions { display: flex; align-items: center; gap: 12px; }
+.hero-row { position: relative; display: flex; align-items: flex-end; gap: 12px; }
+.hero-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 700; color: #fff; }
+.hero-location { position: relative; flex: 1; }
+.hero-distance { flex: 0 0 140px; }
 
-.search-card input[type="text"],
-.search-card select {
+.location-input { position: relative; }
+.location-input .pin-icon { position: absolute; top: 50%; left: 14px; width: 16px; height: 16px; transform: translateY(-50%); color: var(--muted); }
+
+.search-hero input[type="text"],
+.search-hero select,
+.filter-bar select {
   width: 100%;
-  padding: 10px 12px;
-  background: var(--input-bg);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: 12px;
   color: var(--ink);
   font: inherit;
   font-size: 14px;
 }
+.search-hero input[type="text"] { padding-left: 38px; }
+.search-hero input:focus,
+.search-hero select:focus { outline: 3px solid rgba(255, 255, 255, 0.45); outline-offset: 1px; }
+
+.hero-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  background: #fff;
+  color: var(--ink);
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: none;
+}
+.hero-search svg { width: 16px; height: 16px; }
+
+.hero-links { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 12px; min-height: 22px; }
+.current-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.current-location svg { width: 14px; height: 14px; }
+.current-location:hover { text-decoration: underline; }
+.current-location:disabled { opacity: 0.7; cursor: progress; }
+.current-location-status { font-size: 12px; color: rgba(255, 255, 255, 0.85); }
+.hero-clear { margin-left: auto; color: #fff; font-size: 12px; font-weight: 700; }
+
+/* ---------- Location suggestions ---------- */
 
 .suggestions {
   position: absolute;
@@ -54,50 +97,84 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   box-shadow: 0 6px 18px rgba(28, 26, 26, 0.12);
+  color: var(--ink);
 }
-
-.suggestions li { padding: 8px 12px; font-size: 13px; cursor: pointer; }
+.suggestions li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
 .suggestions li:hover { background: var(--bg); }
+.suggestion-kind { color: var(--muted); font-size: 11px; white-space: nowrap; }
 
-.result-summary { margin: 0 0 12px; font-size: 13px; }
+/* ---------- Service filter and sort ---------- */
 
-.search-layout {
+.filter-bar { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
+.filter-field label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; }
+.filter-field { flex: 0 1 240px; }
+.filter-bar select { border-color: var(--line-strong); border-radius: 999px; padding: 8px 14px; font-size: 13px; }
+.filter-sort { margin-left: auto; flex-basis: 180px; }
+.filter-clear { padding-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+
+/* ---------- Results ---------- */
+
+.results-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.results-header h2 { font-size: 20px; }
+
+.search-layout { display: block; }
+.search-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.search-layout.with-map {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
+.search-layout.with-map .search-results { grid-template-columns: 1fr; }
 
-.search-results { display: grid; gap: 12px; }
-
-.caregiver-result { padding: 16px; }
+.caregiver-result { padding: 18px; }
 .caregiver-result.is-highlighted { border: 2px solid var(--ink); box-shadow: 0 3px 0 var(--ink); }
 
-.result-head { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
-.result-title h2 { font-size: 18px; margin-bottom: 2px; }
-.result-title p { font-size: 13px; }
+.result-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.result-title h3 { font-size: 17px; margin-bottom: 2px; }
+.result-place { display: flex; align-items: center; gap: 4px; margin: 0; color: var(--muted); font-size: 12px; }
+.result-place .pin-icon { width: 13px; height: 13px; flex: none; }
 
 .result-avatar {
   display: grid;
   place-items: center;
   flex: none;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   background: var(--peach);
   color: #7a3410;
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   object-fit: cover;
 }
+.result-avatar.theme-blue { background: var(--blue-soft); color: #1f4f7a; }
+.result-avatar.theme-mint { background: var(--mint); color: #14532d; }
+.result-avatar.theme-pink { background: var(--pink); color: #4a0f2a; }
+.caregiver-result.is-unavailable .result-avatar { filter: grayscale(1); opacity: 0.7; }
 
-.result-services { margin: 10px 0 0; padding-left: 18px; font-size: 13px; }
-.result-services .is-match { font-weight: 700; }
+.result-tags { margin-bottom: 10px; }
+.tag-experience { display: inline-flex; align-items: center; gap: 3px; }
+.tag-experience .paw-icon { width: 11px; height: 11px; fill: currentColor; }
+
+.service-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; padding: 0; list-style: none; }
+.service-chip {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff1c9;
+  color: #6b4500;
+  font-size: 11px;
+  font-weight: 600;
+}
+.service-chip.is-match { background: var(--yellow); color: var(--ink); }
+
+.view-profile { color: var(--ink); font-size: 13px; font-weight: 700; text-decoration: none; }
+.view-profile:hover { text-decoration: underline; }
 
 .availability-badge {
   display: inline-block;
-  margin-bottom: 2px;
+  margin-top: 4px;
   padding: 2px 8px;
   border-radius: 999px;
   background: #f8e5df;
@@ -105,25 +182,56 @@
   font-size: 11px;
   font-weight: 700;
 }
-.caregiver-result.is-unavailable .result-avatar { filter: grayscale(1); opacity: 0.7; }
-.btn-unavailable {
-  background: var(--tag-bg);
-  color: var(--muted);
-  cursor: not-allowed;
-  box-shadow: none;
-}
-.result-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ---------- Map ---------- */
 
 .search-map-card { position: sticky; top: 16px; padding: 10px; }
 .search-map { height: 480px; border-radius: var(--radius); }
 .map-note { margin: 8px 4px 0; }
 
+/* ---------- No results ---------- */
+
+.no-results { padding: 40px 24px; text-align: center; }
+.no-results h2 { margin: 12px 0 6px; font-size: 22px; }
+.no-results-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--tag-bg);
+  color: var(--ink);
+}
+.no-results-icon svg { width: 22px; height: 22px; }
+.suggestion-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.suggestion-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.suggestion-chip .pin-icon { width: 13px; height: 13px; }
+.suggestion-chip:hover { border-color: var(--ink); }
+
 @media (max-width: 800px) {
-  .search-row, .filter-row { flex-direction: column; align-items: stretch; }
-  .filter-field { flex-basis: auto; }
-  .filter-clear { padding: 0; }
-  .search-or { padding: 0; text-align: center; }
-  .search-layout { grid-template-columns: 1fr; }
+  .search-hero { padding: 22px 18px 18px; }
+  .search-hero h1 { font-size: 26px; }
+  .hero-row { flex-direction: column; align-items: stretch; }
+  .hero-distance { flex-basis: auto; }
+  .hero-search { justify-content: center; }
+  .hero-dot-pink, .hero-dot-orange { display: none; }
+  .hero-dot-yellow { width: 90px; height: 90px; top: -45px; right: -45px; }
+  .filter-bar { flex-wrap: wrap; }
+  .filter-field, .filter-sort { flex: 1 1 100%; margin-left: 0; }
+  .search-results,
+  .search-layout.with-map { grid-template-columns: 1fr; }
   .search-map-card { position: static; order: -1; }
   .search-map { height: 300px; }
 }

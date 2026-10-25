@@ -2,6 +2,7 @@
 them by service (#34) and availability (#35)."""
 
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -10,7 +11,22 @@ from django.db.models import Exists, OuterRef, Prefetch, Q
 from .geocoding import distance_miles
 from .models import CaregiverProfile, CaregiverService, ServiceType
 
-NEIGHBORHOODS_FILE = Path(__file__).resolve().parent / "data" / "nyc_neighborhoods.json"
+DATA_DIR = Path(__file__).resolve().parent / "data"
+NEIGHBORHOODS_FILE = DATA_DIR / "nyc_neighborhoods.json"
+ZIP_CODES_FILE = DATA_DIR / "nyc_zip_codes.json"
+
+# How far owners can ask to search, in miles (the Distance menu).
+DISTANCE_CHOICES = (1, 2, 5, 10)
+DEFAULT_DISTANCE = 5
+# How much farther than the chosen distance "nearby" suggestions can be.
+NEARBY_EXTRA_MILES = 4
+
+# Ways to order results (the sort menu); "closest" needs a location.
+SORT_CHOICES = {
+    "closest": "Closest first",
+    "experience": "Most experienced",
+    "name": "Name (A-Z)",
+}
 
 # The largest service radius a caregiver can set (see CaregiverProfile).
 MAX_RADIUS_MILES = 25
@@ -30,6 +46,70 @@ def neighborhoods():
 def neighborhood(code):
     """The neighborhood with this NTA code (e.g. "MN0202"), or None."""
     return next((n for n in neighborhoods() if n["code"] == code), None)
+
+
+@lru_cache(maxsize=1)
+def zip_codes():
+    """NYC ZIP codes with a center point and the nearest neighborhood."""
+    with ZIP_CODES_FILE.open() as f:
+        return json.load(f)["zip_codes"]
+
+
+def _simplify(text):
+    return " ".join(text.lower().replace("\u2019", "'").split())
+
+
+def find_neighborhood(text):
+    """The neighborhood the owner typed, e.g. "Park Slope" or "Astoria, Queens".
+
+    Matches the full name, or one part of a combined name such as
+    "Windsor Terrace-South Slope" or "Astoria (Central)". Returns None if
+    nothing matches.
+    """
+    name, _, borough = _simplify(text).partition(",")
+    name, borough = name.strip(), borough.strip()
+    if not name:
+        return None
+    candidates = [
+        n for n in neighborhoods()
+        if not borough or _simplify(n["borough"]) == borough
+    ]
+    for n in candidates:
+        if _simplify(n["name"]) == name:
+            return n
+    for n in candidates:
+        if name in _name_parts(n["name"]):
+            return n
+    # "Astoria" for "Astoria (Central)".
+    for n in candidates:
+        if name in (re.sub(r"\s*\(.*?\)", "", part) for part in _name_parts(n["name"])):
+            return n
+    return None
+
+
+def _name_parts(name):
+    return [part.strip() for part in _simplify(name).split("-")]
+
+
+def find_zip_code(text):
+    """The place for an NYC ZIP code like "11215", or None."""
+    code = text.strip()
+    place = zip_codes().get(code) if code.isdigit() and len(code) == 5 else None
+    if place is None:
+        return None
+    return {
+        "label": f"{code} ({place['neighborhood']})",
+        "latitude": place["latitude"],
+        "longitude": place["longitude"],
+    }
+
+
+def nearest_neighborhood(latitude, longitude):
+    """The neighborhood whose center is closest to the point."""
+    return min(
+        neighborhoods(),
+        key=lambda n: distance_miles(latitude, longitude, n["latitude"], n["longitude"]),
+    )
 
 
 def listed_services():
@@ -64,9 +144,11 @@ def searchable_caregivers(viewer, available_only=True):
     return caregivers
 
 
-def caregivers_near(caregivers, latitude, longitude):
+def caregivers_near(caregivers, latitude, longitude, max_miles=None):
     """Caregivers whose service radius covers the point, nearest first.
 
+    With max_miles, caregivers farther away than that are left out too, so
+    both the owner's Distance and the caregiver's own radius have to fit.
     Each returned caregiver gets a `distance` attribute in miles.
     """
     latitude, longitude = float(latitude), float(longitude)
@@ -79,7 +161,10 @@ def caregivers_near(caregivers, latitude, longitude):
         caregiver.distance = distance_miles(
             latitude, longitude, caregiver.latitude, caregiver.longitude
         )
-        if caregiver.distance <= caregiver.service_radius_miles:
+        limit = caregiver.service_radius_miles
+        if max_miles is not None:
+            limit = min(limit, max_miles)
+        if caregiver.distance <= limit:
             results.append(caregiver)
     results.sort(key=lambda c: (c.distance, c.name))
     return results
@@ -115,3 +200,42 @@ def put_service_first(caregivers, service_type):
             key=lambda s: s.service_type_id != service_type.pk
         )
     return caregivers
+
+
+def sort_caregivers(caregivers, sort, has_origin):
+    """Order results by the owner's choice; "closest" only works with a location."""
+    if sort == "experience":
+        return sorted(caregivers, key=lambda c: (-c.years_of_experience, c.name))
+    if sort == "closest" and has_origin:
+        return caregivers  # caregivers_near already sorts nearest first
+    return sorted(caregivers, key=lambda c: c.name)
+
+
+def nearby_suggestions(caregivers, latitude, longitude, max_miles, limit=3):
+    """Up to `limit` neighborhoods near the point where a search would find someone.
+
+    Shown when a search has no results. `caregivers` is the filtered queryset.
+    """
+    pool = [c for c in caregivers if c.latitude is not None and c.longitude is not None]
+    if not pool:
+        return []
+    # Only neighborhoods a short trip away count as "nearby".
+    reach = max_miles + NEARBY_EXTRA_MILES
+    nearby = []
+    for hood in neighborhoods():
+        miles = distance_miles(latitude, longitude, hood["latitude"], hood["longitude"])
+        if miles <= reach:
+            nearby.append((miles, hood))
+    nearby.sort(key=lambda pair: pair[0])
+    suggestions = []
+    for _, hood in nearby:
+        served = any(
+            distance_miles(hood["latitude"], hood["longitude"], c.latitude, c.longitude)
+            <= min(c.service_radius_miles, max_miles)
+            for c in pool
+        )
+        if served:
+            suggestions.append(hood)
+            if len(suggestions) == limit:
+                break
+    return suggestions

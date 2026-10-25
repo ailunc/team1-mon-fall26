@@ -144,14 +144,14 @@ class FindCaregiversPageTests(SearchTestData):
         # Rossville, Staten Island: nobody travels that far.
         response = self.client.get(URL, {"address": "Rossville", "lat": "40.551", "lng": "-74.212"})
         self.assertEqual(self.names(response), [])
-        self.assertContains(response, "No caregivers here yet")
+        self.assertContains(response, "No caregivers near")
 
     def test_coordinates_outside_nyc_are_ignored(self):
         with mock.patch("caregivers.views.geocode", return_value=None):
             response = self.client.get(
                 URL, {"address": "Boston", "lat": "42.36", "lng": "-71.06"}
             )
-        self.assertContains(response, "couldn&#x27;t find that address")
+        self.assertContains(response, "couldn&#x27;t find that place")
 
     @mock.patch("caregivers.views.geocode")
     def test_typed_address_is_looked_up_when_not_picked(self, geocode):
@@ -167,7 +167,7 @@ class FindCaregiversPageTests(SearchTestData):
     def test_address_not_found(self, geocode):
         response = self.client.get(URL, {"address": "1 Hudson Pl, Hoboken"})
         self.assertEqual(self.names(response), [])
-        self.assertContains(response, "couldn&#x27;t find that address in New York City")
+        self.assertContains(response, "couldn&#x27;t find that place in New York City")
 
     @mock.patch("caregivers.views.geocode", side_effect=GeocodingUnavailable("down"))
     def test_service_down_falls_back_to_neighborhood_name(self, geocode):
@@ -175,13 +175,11 @@ class FindCaregiversPageTests(SearchTestData):
         self.assertEqual(self.names(response), ["Marcus"])
         self.assertContains(response, "Address search is unavailable right now")
 
-    def test_cards_link_to_profile_and_request_form(self):
+    def test_cards_link_to_profile_and_show_services(self):
         response = self.client.get(URL, {"address": "x", **NYU})
         self.assertContains(response, reverse("caregiver", args=[self.village.pk]))
-        self.assertContains(
-            response, f"{reverse('bookings:booking_create')}?caregiver={self.village.pk}"
-        )
-        self.assertContains(response, "Dog walking · $25.00 / Per Walk")
+        self.assertContains(response, "View profile")
+        self.assertContains(response, 'title="$25.00 / Per Walk">Dog walking</li>')
 
     def test_map_data_has_results_but_never_addresses(self):
         response = self.client.get(URL, {"address": "x", **NYU})
@@ -193,4 +191,6 @@ class FindCaregiversPageTests(SearchTestData):
 
     def test_neighborhood_options_are_listed(self):
         response = self.client.get(URL)
-        self.assertContains(response, '<option value="MN0202">Greenwich Village</option>', html=True)
+        labels = [n["label"] for n in response.context["neighborhood_options"]]
+        self.assertIn("Greenwich Village, Manhattan", labels)
+        self.assertContains(response, 'id="neighborhood-options"')

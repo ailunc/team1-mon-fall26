@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static caregiver_tags %}
 
 {% block title %}Find caregivers · PawPal{% endblock %}
 
@@ -9,47 +9,65 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="{% static 'css/caregiver_search.css' %}">
 
-  <div class="page-heading">
-    <div>
-      <h1>Find caregivers</h1>
-      <p class="muted">Search near your home or pick a neighborhood. Only caregivers who travel to you are shown.</p>
-    </div>
-  </div>
+  <div class="search-page">
+    <form method="get" class="search-hero" id="caregiver-search" autocomplete="off">
+      <span class="hero-dot hero-dot-pink" aria-hidden="true"></span>
+      <span class="hero-dot hero-dot-orange" aria-hidden="true"></span>
+      <span class="hero-dot hero-dot-yellow" aria-hidden="true"></span>
 
-  <form method="get" class="card search-card" id="caregiver-search" autocomplete="off">
-    <div class="search-row">
-    <div class="field search-address">
-      <label for="search-address">Your address</label>
-      <input type="text" id="search-address" name="address" value="{{ address }}"
-             placeholder="e.g. 70 Washington Square South"
-             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="address-suggestions">
+      <h1>Find a caregiver nearby</h1>
+      <p class="hero-lead">Enter a neighborhood or ZIP code to see caregivers in your area.</p>
+
+      <div class="hero-row">
+        <div class="hero-field hero-location">
+          <label for="search-location">Location</label>
+          <div class="location-input">
+            {% include "partials/pin_icon.html" %}
+            <input type="text" id="search-location" name="location" value="{{ location_text }}"
+                   placeholder="e.g. Park Slope, 11215 or 70 Washington Sq S"
+                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-suggestions">
+          </div>
+          <ul class="suggestions" id="location-suggestions" role="listbox" hidden></ul>
+        </div>
+        <div class="hero-field hero-distance">
+          <label for="search-distance">Distance</label>
+          <select id="search-distance" name="distance">
+            {% for miles in distance_choices %}
+              <option value="{{ miles }}"{% if miles == distance %} selected{% endif %}>{{ miles }} mi</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn hero-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          Search
+        </button>
+      </div>
+
+      <div class="hero-links">
+        <button type="button" class="current-location" id="use-current-location" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 3L3 10.5l7.5 2.9L13.4 21z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          Use my current location
+        </button>
+        <span class="current-location-status" id="current-location-status" role="status"></span>
+        {% if searched or service %}<a class="hero-clear" href="{% url 'caregiver_list' %}">Clear search</a>{% endif %}
+      </div>
+
       <input type="hidden" name="lat" id="search-lat">
       <input type="hidden" name="lng" id="search-lng">
-      <ul class="suggestions" id="address-suggestions" role="listbox" hidden></ul>
-    </div>
-    <span class="search-or muted">or</span>
-    <div class="field search-area">
-      <label for="search-area">Neighborhood</label>
-      <select id="search-area" name="area">
-        <option value="">Choose a neighborhood</option>
-        {% regroup neighborhoods by borough as boroughs %}
-        {% for borough in boroughs %}
-          <optgroup label="{{ borough.grouper }}">
-            {% for n in borough.list %}
-              <option value="{{ n.code }}"{% if n.code == area_code %} selected{% endif %}>{{ n.name }}</option>
-            {% endfor %}
-          </optgroup>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="search-actions">
-      <button type="submit" class="btn btn-dark">Search</button>
-      {% if searched or filtered %}<a class="text-link" href="{% url 'caregiver_list' %}">Clear</a>{% endif %}
-    </div>
-    </div>
+      <input type="hidden" name="here" id="search-here">
+      <input type="hidden" name="map" id="search-map" value="{% if show_map %}1{% endif %}">
+      {% if service %}<input type="hidden" name="service" value="{{ service.pk }}">{% endif %}
+      {% if sort != "closest" %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+      {% if availability != "available" %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
+    </form>
 
-    <div class="filter-row" role="group" aria-label="Filter caregivers">
-      <div class="field filter-field">
+    {# Service filter (#34). Kept as a menu for now; the design shows it as chips. #}
+    <form method="get" class="filter-bar" id="caregiver-filters">
+      {% for key, value in request.GET.items %}
+        {% if key != "service" and key != "sort" and key != "map" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
+      {% endfor %}
+      <input type="hidden" name="map" value="{% if show_map %}1{% endif %}">
+      <div class="filter-field">
         <label for="filter-service">Service</label>
         <select id="filter-service" name="service" data-autosubmit>
           <option value="">All services</option>
@@ -58,91 +76,95 @@
           {% endfor %}
         </select>
       </div>
-      <div class="field filter-field">
-        <label for="filter-availability">Availability</label>
-        <select id="filter-availability" name="availability" data-autosubmit>
-          {% for value, label in availability_choices %}
-            <option value="{{ value }}"{% if value == availability %} selected{% endif %}>{{ label }}</option>
+      {% if service %}
+        <a class="filter-clear" href="?{{ query_without_service }}">Clear filter</a>
+      {% endif %}
+      <div class="filter-field filter-sort">
+        <label for="filter-sort">Sort by</label>
+        <select id="filter-sort" name="sort" data-autosubmit>
+          {% for value, label in sort_choices %}
+            <option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>
           {% endfor %}
         </select>
       </div>
-      {% if filtered %}
-        <a class="text-link filter-clear" href="{{ clear_filters_url }}">Clear filters</a>
-      {% endif %}
-    </div>
-  </form>
+    </form>
 
-  {% if notice %}
-    <div class="alert alert-info" role="status"><span class="alert-icon" aria-hidden="true">!</span><span>{{ notice }}</span></div>
-  {% endif %}
-
-  <p class="result-summary muted">
-    {% if origin %}
-      {{ caregivers|length }} caregiver{{ caregivers|length|pluralize }} near <strong>{{ origin.label }}</strong>
-    {% elif not searched %}
-      {{ caregivers|length }} caregiver{{ caregivers|length|pluralize }} on PawPal
+    {% if notice %}
+      <div class="alert alert-info" role="status"><span class="alert-icon" aria-hidden="true">!</span><span>{{ notice }}</span></div>
     {% endif %}
-    {% if service and origin or service and not searched %} · offering <strong>{{ service.name }}</strong>{% endif %}
-  </p>
 
-  <div class="search-layout">
-    <div class="search-results">
-      {% for caregiver in caregivers %}
-        <article class="card caregiver-result{% if not caregiver.accepting_new_bookings %} is-unavailable{% endif %}" id="caregiver-{{ caregiver.pk }}" data-caregiver="{{ caregiver.pk }}">
-          <div class="result-head">
-            {% if caregiver.profile_photo %}
-              <img class="result-avatar" src="{{ caregiver.profile_photo.url }}" alt="Photo of {{ caregiver.name }}">
-            {% else %}
-              <span class="result-avatar" aria-hidden="true">{{ caregiver.name|first|upper }}</span>
-            {% endif %}
-            <div class="result-title">
-              <h2>{{ caregiver.name }}</h2>
-              {% if not caregiver.accepting_new_bookings %}<span class="availability-badge">Not taking new bookings</span>{% endif %}
-              <p class="muted">
-                {{ caregiver.neighborhood|default:caregiver.service_area }}
-                {% if origin and caregiver.distance is not None %} · <strong>{{ caregiver.distance|floatformat:1 }} mi away</strong>{% endif %}
-              </p>
-            </div>
-          </div>
-          <div class="tags">
-            <span class="tag">{{ caregiver.years_of_experience }} yr{{ caregiver.years_of_experience|pluralize }} experience</span>
-            {% for pet_type in caregiver.supported_pet_types.all %}<span class="tag">{{ pet_type.name }}</span>{% endfor %}
-          </div>
-          {% if caregiver.listed_services %}
-            <ul class="result-services">
-              {% for offer in caregiver.listed_services %}
-                <li{% if offer.service_type_id == service.pk %} class="is-match"{% endif %}>{{ offer.service_type.name }} · ${{ offer.price }} / {{ offer.get_price_unit_display }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
-          <div class="result-actions">
-            <a class="btn btn-outline btn-small" href="{% url 'caregiver' caregiver.pk %}">View profile</a>
-            {% if caregiver.accepting_new_bookings %}
-              <a class="btn btn-dark btn-small" href="{% url 'bookings:booking_create' %}?caregiver={{ caregiver.pk }}{% if service %}&amp;service_type={{ service.pk }}{% endif %}">Request care</a>
-            {% else %}
-              <span class="btn btn-small btn-unavailable" aria-disabled="true">Not taking requests</span>
-            {% endif %}
-          </div>
-        </article>
-      {% empty %}
-        <div class="card empty-state">
-          <span class="bubble bubble-yellow" aria-hidden="true">{% include "partials/paw_icon.html" %}</span>
-          <h2>No caregivers here yet</h2>
-          <p class="muted">
-            {% if service %}No caregivers offer {{ service.name }}{% if origin %} near {{ origin.label }}{% endif %}. Try another service.{% elif origin %}No caregivers travel to {{ origin.label }} yet. Try a nearby neighborhood.{% else %}Try another address or neighborhood.{% endif %}
-          </p>
-          <a class="btn btn-dark" href="{% url 'caregiver_list' %}">See all caregivers</a>
+    {% if caregivers %}
+      <div class="results-header">
+        <h2>{{ caregivers|length }} caregiver{{ caregivers|length|pluralize }} {% if origin %}near {{ origin.label }}{% else %}on PawPal{% endif %}{% if service %} · {{ service.name }}{% endif %}</h2>
+        <button type="button" class="btn btn-outline btn-small map-toggle" id="map-toggle" aria-controls="map-panel" aria-expanded="{% if show_map %}true{% else %}false{% endif %}" hidden>
+          {% if show_map %}Hide map{% else %}Show map{% endif %}
+        </button>
+      </div>
+
+      <div class="search-layout{% if show_map %} with-map{% endif %}" id="search-layout">
+        <div class="search-results">
+          {% for caregiver in caregivers %}
+            <article class="card caregiver-result{% if not caregiver.accepting_new_bookings %} is-unavailable{% endif %}" id="caregiver-{{ caregiver.pk }}">
+              <div class="result-head">
+                {% if caregiver.profile_photo %}
+                  <img class="result-avatar" src="{{ caregiver.profile_photo.url }}" alt="Photo of {{ caregiver.name }}">
+                {% else %}
+                  <span class="result-avatar theme-{{ caregiver|avatar_theme }}" aria-hidden="true">{{ caregiver.name|initials }}</span>
+                {% endif %}
+                <div class="result-title">
+                  <h3>{{ caregiver.name }}</h3>
+                  <p class="result-place">
+                    {% include "partials/pin_icon.html" %}
+                    {{ caregiver.neighborhood|default:caregiver.service_area }}{% if origin and caregiver.distance is not None %} · {{ caregiver.distance|floatformat:1 }} mi away{% endif %}
+                  </p>
+                  {% if not caregiver.accepting_new_bookings %}<span class="availability-badge">Not taking new bookings</span>{% endif %}
+                </div>
+              </div>
+              <div class="tags result-tags">
+                <span class="tag tag-experience">{% include "partials/paw_icon.html" %} {{ caregiver.years_of_experience|experience_range }}</span>
+                {% for pet_type in caregiver.supported_pet_types.all %}<span class="tag">{{ pet_type.name }}</span>{% endfor %}
+              </div>
+              {% if caregiver.listed_services %}
+                <ul class="service-chips" aria-label="Services">
+                  {% for offer in caregiver.listed_services %}
+                    <li class="service-chip{% if offer.service_type_id == service.pk %} is-match{% endif %}" title="${{ offer.price }} / {{ offer.get_price_unit_display }}">{{ offer.service_type.name }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+              <a class="view-profile" href="{% url 'caregiver' caregiver.pk %}">View profile <span aria-hidden="true">&rarr;</span></a>
+            </article>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
 
-    <div class="card search-map-card">
-      <div id="caregiver-map" class="search-map" aria-label="Map of caregivers"></div>
-      <p class="muted small map-note">Locations are approximate.</p>
-    </div>
+        <div class="card search-map-card" id="map-panel"{% if not show_map %} hidden{% endif %}>
+          <div id="caregiver-map" class="search-map" aria-label="Map of caregivers"></div>
+          <p class="muted small map-note">Locations are approximate.</p>
+        </div>
+      </div>
+    {% else %}
+      <div class="card no-results">
+        <span class="no-results-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8l4 4m0-4l-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <h2>
+          {% if origin %}No caregivers {% if service %}offer {{ service.name }} {% endif %}near “{{ origin.label }}” yet{% elif searched %}No caregivers found{% elif service %}No caregivers offer {{ service.name }} yet{% else %}No caregivers on PawPal yet{% endif %}
+        </h2>
+        <p class="muted">
+          {% if suggestions %}Try a nearby neighborhood or ZIP code.{% elif origin %}Try a larger distance, another neighborhood or another service.{% else %}Try a neighborhood or ZIP code.{% endif %}
+        </p>
+        {% if suggestions %}
+          <ul class="suggestion-chips">
+            {% for hood in suggestions %}
+              <li><a class="suggestion-chip" href="?area={{ hood.code }}&amp;distance={{ distance }}{% if service %}&amp;service={{ service.pk }}{% endif %}">{% include "partials/pin_icon.html" %} {{ hood.name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 
   {{ map_data|json_script:"caregiver-map-data" }}
+  {{ neighborhood_options|json_script:"neighborhood-options" }}
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="{% static 'js/caregiver_search.js' %}"></script>
 {% endblock %}
