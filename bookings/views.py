@@ -59,16 +59,10 @@ def booking_create(request):
             if request.GET.get(key, "").isdigit()
         }
         form = BookingRequestForm(initial=initial, owner=request.user)
-    caregiver_id = request.GET.get("caregiver", "")
     return render(
         request,
         "bookings/booking_form.html",
-        {
-            "form": form,
-            "caregiver_services": form.caregiver_services(),
-            # Coming from a caregiver's profile: the back link returns there.
-            "back_caregiver": int(caregiver_id) if caregiver_id.isdigit() else None,
-        },
+        {"form": form, "services_by_caregiver": form.services_by_caregiver()},
     )
 
 

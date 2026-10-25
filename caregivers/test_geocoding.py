@@ -121,8 +121,8 @@ class LocationFormTests(TestCase):
 
     def data(self, **overrides):
         data = {
-            "name": "Chloe Shih",
-            "service_area": "Greenwich Village",
+            "first_name": "Chloe",
+            "last_name": "Shih",
             "years_of_experience": 2,
             "address": "70 Washington Square South",
             "service_radius_miles": 3,
@@ -217,8 +217,8 @@ class LocationViewTests(TestCase):
 
     def post_profile(self, **overrides):
         data = {
-            "name": "Chloe Shih",
-            "service_area": "Greenwich Village",
+            "first_name": "Chloe",
+            "last_name": "Shih",
             "years_of_experience": 2,
             "address": "70 Washington Square South",
             "service_radius_miles": 4,
@@ -253,8 +253,8 @@ class LocationViewTests(TestCase):
         caregiver = CaregiverProfile.objects.get(user=self.user)
         self.geocode.side_effect = GeocodingUnavailable("down")
         data = {
-            "name": "Chloe Shih",
-            "service_area": "Greenwich Village",
+            "first_name": "Chloe",
+            "last_name": "Shih",
             "years_of_experience": 2,
             "address": "7th Ave and 9th St, Brooklyn",
             "service_radius_miles": 4,
@@ -350,7 +350,7 @@ class HouseNumberGuardTests(SimpleTestCase):
 
 class LocationConfirmationTests(TestCase):
     @mock.patch("caregivers.forms.geocode")
-    def test_caregiver_sees_where_they_were_placed(self, geocode_mock):
+    def test_profile_shows_the_neighborhood_without_a_placement_message(self, geocode_mock):
         geocode_mock.return_value = Location(
             latitude=Decimal("40.729"), longitude=Decimal("-73.997"),
             neighborhood="Greenwich Village", borough="Manhattan",
@@ -361,10 +361,10 @@ class LocationConfirmationTests(TestCase):
         response = self.client.post(
             reverse("create_caregiver_profile"),
             {
-                "name": "Chloe", "service_area": "Village", "years_of_experience": 1,
+                "first_name": "Chloe", "last_name": "Shih", "years_of_experience": 1,
                 "address": "70 Washington Square South", "service_radius_miles": 3,
             },
             follow=True,
         )
-        self.assertContains(response, "We placed you at 70 Washington Square South")
+        self.assertNotContains(response, "We placed you at")
         self.assertContains(response, "Greenwich Village, Manhattan")

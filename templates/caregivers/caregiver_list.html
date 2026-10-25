@@ -22,7 +22,7 @@
         <div class="hero-field hero-location">
           <label for="search-location">Location</label>
           <div class="location-input">
-            {% include "caregivers/partials/pin_icon.html" %}
+            {% include "partials/pin_icon.html" %}
             <input type="text" id="search-location" name="location" value="{{ location_text }}"
                    placeholder="e.g. Park Slope, 11215 or 70 Washington Sq S"
                    role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-suggestions">
@@ -114,7 +114,7 @@
                 <div class="result-title">
                   <h3>{{ caregiver.name }}</h3>
                   <p class="result-place">
-                    {% include "caregivers/partials/pin_icon.html" %}
+                    {% include "partials/pin_icon.html" %}
                     {{ caregiver.neighborhood|default:caregiver.service_area }}{% if origin and caregiver.distance is not None %} · {{ caregiver.distance|floatformat:1 }} mi away{% endif %}
                   </p>
                   {% if not caregiver.accepting_new_bookings %}<span class="availability-badge">Not taking new bookings</span>{% endif %}
@@ -155,7 +155,7 @@
         {% if suggestions %}
           <ul class="suggestion-chips">
             {% for hood in suggestions %}
-              <li><a class="suggestion-chip" href="?area={{ hood.code }}&amp;distance={{ distance }}{% if service %}&amp;service={{ service.pk }}{% endif %}">{% include "caregivers/partials/pin_icon.html" %} {{ hood.name }}</a></li>
+              <li><a class="suggestion-chip" href="?area={{ hood.code }}&amp;distance={{ distance }}{% if service %}&amp;service={{ service.pk }}{% endif %}">{% include "partials/pin_icon.html" %} {{ hood.name }}</a></li>
             {% endfor %}
           </ul>
         {% endif %}
