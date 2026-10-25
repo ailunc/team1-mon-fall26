@@ -12,6 +12,9 @@ from .models import (
 
 
 class CaregiverProfileForm(forms.ModelForm):
+    # Saved together as the profile's `name`.
+    first_name = forms.CharField(max_length=50, label="First name")
+    last_name = forms.CharField(max_length=50, label="Last name")
     selected_services = forms.ModelMultipleChoiceField(
         queryset=ServiceType.objects.all(),
         widget=forms.CheckboxSelectMultiple,
@@ -33,11 +36,11 @@ class CaregiverProfileForm(forms.ModelForm):
 
     class Meta:
         model = CaregiverProfile
+        # `name` comes from first and last name, and `service_area` from the
+        # neighborhood NYC GeoSearch finds for the address.
         fields = [
-            "name",
             "bio",
             "years_of_experience",
-            "service_area",
             "address",
             "service_radius_miles",
             "profile_photo",
@@ -59,8 +62,8 @@ class CaregiverProfileForm(forms.ModelForm):
             ),
         }
         labels = {
-            "address": "Street address",
-            "service_radius_miles": "How far you'll travel (miles)",
+            "address": "Address",
+            "service_radius_miles": "Max travel distance (miles)",
         }
 
     def __init__(self, *args, **kwargs):
@@ -68,6 +71,10 @@ class CaregiverProfileForm(forms.ModelForm):
         # Required for new entries; the model allows blank so older profiles
         # without an address still load.
         self.fields["address"].required = True
+        if self.instance.pk and self.instance.name:
+            first, _, last = self.instance.name.partition(" ")
+            self.initial.setdefault("first_name", first)
+            self.initial.setdefault("last_name", last)
         # Older profiles saved an exact number of years; show the range it falls in.
         if self.instance.pk:
             self.initial["years_of_experience"] = experience_range(
@@ -110,10 +117,20 @@ class CaregiverProfileForm(forms.ModelForm):
 
     def save(self, commit=True):
         caregiver = super().save(commit=False)
+        caregiver.name = " ".join(
+            part for part in (
+                self.cleaned_data["first_name"].strip(),
+                self.cleaned_data["last_name"].strip(),
+            ) if part
+        )
         if self._location is not None:
             caregiver.latitude = self._location.latitude
             caregiver.longitude = self._location.longitude
             caregiver.neighborhood = self._location.neighborhood
+            # Shown to owners, e.g. "Park Slope, Brooklyn".
+            caregiver.service_area = ", ".join(
+                part for part in (self._location.neighborhood, self._location.borough) if part
+            )
         elif self.geocoding_unavailable:
             # Don't keep coordinates that belong to an old address.
             caregiver.latitude = caregiver.longitude = None

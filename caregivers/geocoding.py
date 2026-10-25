@@ -15,7 +15,9 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 GEOSEARCH_URL = "https://geosearch.planninglabs.nyc/v2/search"
+AUTOCOMPLETE_URL = "https://geosearch.planninglabs.nyc/v2/autocomplete"
 TIMEOUT_SECONDS = 5
+AUTOCOMPLETE_LIMIT = 5
 
 # Coordinates are stored rounded to 3 decimal places (about 100 m), so a
 # caregiver's exact home is never kept or shown.
@@ -45,6 +47,57 @@ def _round(value):
     return Decimal(str(value)).quantize(COORDINATE_PLACES)
 
 
+@dataclass(frozen=True)
+class Suggestion:
+    address: str  # e.g. "70 Washington Square South, Manhattan"
+    neighborhood: str
+    borough: str
+
+
+def _fetch(url, params):
+    """GET a GeoSearch URL and return its JSON. Raises GeocodingUnavailable."""
+    request = Request(
+        f"{url}?{urlencode(params)}",
+        headers={"User-Agent": "PawPal (NYU course project)"},
+    )
+    try:
+        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            return json.load(response)
+    except (URLError, TimeoutError, ValueError) as error:
+        raise GeocodingUnavailable(str(error)) from error
+
+
+def _street(label):
+    """ "70 WASHINGTON SQUARE SOUTH, New York, NY, USA" -> "70 Washington Square South"."""
+    return " ".join(word.capitalize() for word in label.split(",")[0].split())
+
+
+def autocomplete(text):
+    """Up to AUTOCOMPLETE_LIMIT NYC addresses that start like `text`.
+
+    Raises GeocodingUnavailable if the service can't be reached.
+    """
+    text = (text or "").strip()
+    if len(text) < 3:
+        return []
+    data = _fetch(AUTOCOMPLETE_URL, {"text": text, "size": AUTOCOMPLETE_LIMIT})
+    suggestions = []
+    for feature in data.get("features") or []:
+        properties = feature.get("properties", {})
+        street = _street(properties.get("label") or "")
+        borough = properties.get("borough") or ""
+        if not street:
+            continue
+        suggestions.append(
+            Suggestion(
+                address=f"{street}, {borough}" if borough else street,
+                neighborhood=properties.get("neighbourhood") or "",
+                borough=borough,
+            )
+        )
+    return suggestions
+
+
 def geocode(address):
     """Return the Location of an NYC address, or None if it isn't found.
 
@@ -54,13 +107,7 @@ def geocode(address):
     if not address:
         return None
 
-    url = f"{GEOSEARCH_URL}?{urlencode({'text': address, 'size': 1})}"
-    request = Request(url, headers={"User-Agent": "PawPal (NYU course project)"})
-    try:
-        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            data = json.load(response)
-    except (URLError, TimeoutError, ValueError) as error:
-        raise GeocodingUnavailable(str(error)) from error
+    data = _fetch(GEOSEARCH_URL, {"text": address, "size": 1})
 
     features = data.get("features") or []
     if not features:

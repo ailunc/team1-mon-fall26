@@ -585,14 +585,14 @@ class CaregiverProfileOwnershipTests(TestCase):
         response = self.client.post(
             reverse("create_caregiver_profile"),
             {
-                "name": "Ana",
-                "service_area": "Bronx",
+                "first_name": "Ana",
+                "last_name": "Diaz",
                 "years_of_experience": 2,
                 "address": "1500 Unionport Rd, Bronx",
                 "service_radius_miles": 3,
             },
         )
-        profile = CaregiverProfile.objects.get(name="Ana")
+        profile = CaregiverProfile.objects.get(name="Ana Diaz")
         self.assertEqual(profile.user, user)
         self.assertRedirects(
             response, reverse("caregiver", args=[profile.pk]), fetch_redirect_response=False

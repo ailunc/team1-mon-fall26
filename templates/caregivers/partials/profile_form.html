@@ -3,7 +3,7 @@
   Pass heading="…" for the page title.
 {% endcomment %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/caregiver_profile.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/caregiver_profile.css' %}?v=4">
 
 <div class="caregiver-heading">
   <span class="caregiver-eyebrow">Caregiver profile</span>
@@ -37,14 +37,16 @@
           </div>
         </div>
         <div class="caregiver-two-fields">
-          <div class="field"><label for="{{ form.name.id_for_label }}">Name <span class="required">*</span></label>{{ form.name }}{{ form.name.errors }}</div>
-          <div class="field"><label for="{{ form.service_area.id_for_label }}">Neighborhood <span class="required">*</span></label>{{ form.service_area }}{{ form.service_area.errors }}</div>
+          <div class="field"><label for="{{ form.first_name.id_for_label }}">First name <span class="required">*</span></label>{{ form.first_name }}{{ form.first_name.errors }}</div>
+          <div class="field"><label for="{{ form.last_name.id_for_label }}">Last name <span class="required">*</span></label>{{ form.last_name }}{{ form.last_name.errors }}</div>
         </div>
         <div class="caregiver-two-fields">
-          <div class="field">
+          {# Suggests NYC addresses while typing. The neighborhood owners see comes from NYC GeoSearch. #}
+          <div class="field" data-address-lookup data-suggest-url="{% url 'address_suggestions' %}" data-neighborhood-url="{% url 'address_neighborhood' %}">
             <label for="{{ form.address.id_for_label }}">{{ form.address.label }} <span class="required">*</span></label>
             {{ form.address }}
-            <p class="caregiver-hint">Private. Owners only see your neighborhood and distance.</p>
+            <datalist id="address-suggestions"></datalist>
+            <p class="caregiver-hint">Owners can only see your neighborhood and distance.</p>
             {{ form.address.errors }}
           </div>
           <div class="field">
@@ -150,7 +152,7 @@
         <div class="caregiver-preview-avatar" id="preview-avatar">{% if form.instance.profile_photo %}<img src="{{ form.instance.profile_photo.url }}" alt="Profile preview">{% else %}?{% endif %}</div>
         <div class="caregiver-preview-body">
           <h3 id="preview-name">Your name</h3>
-          <p class="caregiver-preview-meta"><span id="preview-area">Your neighborhood</span> · <span id="preview-years">Less than 1 year</span></p>
+          <p class="caregiver-preview-meta"><span id="preview-area" data-area="{{ form.instance.service_area }}">Your neighborhood</span> · <span id="preview-years">Less than 1 year</span></p>
           <p class="caregiver-preview-bio" id="preview-bio">Your introduction will appear here.</p>
           <div class="caregiver-preview-group">
             <p>Services</p>
@@ -185,9 +187,11 @@
     return labels.length;
   };
   const update = () => {
-    const name = (field('name')?.value || '').trim();
+    const name = [field('first_name')?.value, field('last_name')?.value]
+      .map(part => (part || '').trim()).filter(Boolean).join(' ');
     document.getElementById('preview-name').textContent = name || 'Your name';
-    document.getElementById('preview-area').textContent = field('service_area')?.value || 'Your neighborhood';
+    const area = document.getElementById('preview-area');
+    area.textContent = area.dataset.area || 'Your neighborhood';
     const years = field('years_of_experience');
     document.getElementById('preview-years').textContent = years ? years.options[years.selectedIndex].text : '';
     document.getElementById('preview-bio').textContent = field('bio')?.value || 'Your introduction will appear here.';
@@ -199,6 +203,54 @@
   };
   form.addEventListener('input', update);
   form.addEventListener('change', update);
+
+  // Address suggestions, and the neighborhood GeoSearch finds for the preview.
+  const lookup = form.querySelector('[data-address-lookup]');
+  const address = field('address');
+  if (lookup && address) {
+    const list = document.getElementById('address-suggestions');
+    const neighborhoodFor = {};  // suggested address -> its neighborhood
+    let suggestTimer;
+    let lastLookup = address.value.trim();
+    address.setAttribute('list', 'address-suggestions');
+    address.setAttribute('autocomplete', 'off');
+
+    const fillArea = (label) => {
+      if (!label) return;
+      document.getElementById('preview-area').dataset.area = label;
+      update();
+    };
+
+    address.addEventListener('input', () => {
+      clearTimeout(suggestTimer);
+      const text = address.value.trim();
+      if (neighborhoodFor[text]) { fillArea(neighborhoodFor[text]); return; }
+      if (text.length < 3) { list.replaceChildren(); return; }
+      suggestTimer = setTimeout(async () => {
+        try {
+          const response = await fetch(lookup.dataset.suggestUrl + '?q=' + encodeURIComponent(text));
+          const data = await response.json();
+          list.replaceChildren(...data.suggestions.map(item => {
+            neighborhoodFor[item.address] = item.neighborhood;
+            const option = document.createElement('option');
+            option.value = item.address;
+            return option;
+          }));
+        } catch (error) { /* Suggestions are optional; typing still works. */ }
+      }, 250);
+    });
+
+    address.addEventListener('change', async () => {
+      const text = address.value.trim();
+      if (!text || text === lastLookup) return;
+      lastLookup = text;
+      if (neighborhoodFor[text]) { fillArea(neighborhoodFor[text]); return; }
+      try {
+        const response = await fetch(lookup.dataset.neighborhoodUrl + '?address=' + encodeURIComponent(text));
+        fillArea((await response.json()).neighborhood);
+      } catch (error) { /* The preview just keeps the old neighborhood. */ }
+    });
+  }
   const upload = field('profile_photo');
   if (upload) upload.addEventListener('change', () => {
     const file = upload.files?.[0];
