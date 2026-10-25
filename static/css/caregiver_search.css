@@ -1,12 +1,27 @@
 /* Find caregivers page. Builds on style.css (cards, buttons, tags, fields). */
 
 .search-card {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
   padding: 18px 20px;
   margin-bottom: 16px;
 }
+
+.search-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+/* Service (#34) and availability (#35) filters, under the location search. */
+.filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.filter-field { flex: 0 1 240px; }
+.filter-clear { padding-bottom: 10px; font-size: 13px; }
 
 .search-card .field { margin: 0; }
 .search-address { position: relative; flex: 3; }
@@ -78,6 +93,25 @@
 }
 
 .result-services { margin: 10px 0 0; padding-left: 18px; font-size: 13px; }
+.result-services .is-match { font-weight: 700; }
+
+.availability-badge {
+  display: inline-block;
+  margin-bottom: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f8e5df;
+  color: #805042;
+  font-size: 11px;
+  font-weight: 700;
+}
+.caregiver-result.is-unavailable .result-avatar { filter: grayscale(1); opacity: 0.7; }
+.btn-unavailable {
+  background: var(--tag-bg);
+  color: var(--muted);
+  cursor: not-allowed;
+  box-shadow: none;
+}
 .result-actions { display: flex; gap: 8px; margin-top: 14px; }
 
 .search-map-card { position: sticky; top: 16px; padding: 10px; }
@@ -85,7 +119,9 @@
 .map-note { margin: 8px 4px 0; }
 
 @media (max-width: 800px) {
-  .search-card { flex-direction: column; align-items: stretch; }
+  .search-row, .filter-row { flex-direction: column; align-items: stretch; }
+  .filter-field { flex-basis: auto; }
+  .filter-clear { padding: 0; }
   .search-or { padding: 0; text-align: center; }
   .search-layout { grid-template-columns: 1fr; }
   .search-map-card { position: static; order: -1; }
