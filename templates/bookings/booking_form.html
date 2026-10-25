@@ -5,17 +5,15 @@
 {% block main_class %}page page-narrow{% endblock %}
 
 {% block content %}
-  <a class="back-link" href="{% url 'bookings:booking_list' %}"><span aria-hidden="true">&lsaquo;</span> Back to my requests</a>
+  {% if back_caregiver %}
+    <a class="back-link" href="{% url 'caregiver' back_caregiver %}"><span aria-hidden="true">&lsaquo;</span> Back to caregiver profile</a>
+  {% else %}
+    <a class="back-link" href="{% url 'bookings:booking_list' %}"><span aria-hidden="true">&lsaquo;</span> Back to my requests</a>
+  {% endif %}
 
   <div class="page-heading">
     <div>
       <h1>Request care</h1>
-      <p class="muted">Tell the caregiver what you need. <span class="required">*</span> Required</p>
-    </div>
-    <div class="bubbles" aria-hidden="true">
-      <span class="bubble bubble-pink"></span>
-      <span class="bubble bubble-mint"></span>
-      <span class="bubble bubble-yellow">{% include "partials/paw_icon.html" %}</span>
     </div>
   </div>
 
@@ -37,32 +35,43 @@
   <form method="post" class="card form-card" novalidate>
     {% csrf_token %}
 
-    <fieldset class="field{% if form.pet.errors %} has-error{% endif %}">
-      <legend>{{ form.pet.label }} <span class="required">*</span></legend>
-      <div class="chips">
+    <div class="field booking-step{% if form.caregiver.errors %} has-error{% endif %}">
+      <label for="{{ form.caregiver.id_for_label }}"><span class="step-number step-1" aria-hidden="true">1</span> {{ form.caregiver.label }}</label>
+      {{ form.caregiver }}
+      {% for error in form.caregiver.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+    </div>
+
+    <fieldset class="field booking-step{% if form.pet.errors %} has-error{% endif %}">
+      <legend><span class="step-number step-2" aria-hidden="true">2</span> {{ form.pet.label }}</legend>
+      <div class="pet-options">
         {% for radio in form.pet %}
-          <label class="chip">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+          {% with pet=radio.data.value.instance %}
+            <label class="pet-option theme-{{ pet.theme }}">
+              {{ radio.tag }}
+              <span class="pet-option-avatar" aria-hidden="true">{{ pet.name|first|upper }}</span>
+              <span class="pet-option-text">
+                <strong>{{ pet.name }}</strong>
+                <span>{{ pet.pet_type }}{% if pet.age_display %} · {{ pet.age_display }}{% endif %}</span>
+              </span>
+            </label>
+          {% endwith %}
         {% endfor %}
       </div>
       {% for error in form.pet.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
     </fieldset>
 
-    <div class="field{% if form.caregiver.errors %} has-error{% endif %}">
-      <label for="{{ form.caregiver.id_for_label }}">{{ form.caregiver.label }} <span class="required">*</span></label>
-      {{ form.caregiver }}
-      {% for error in form.caregiver.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
-    </div>
-
-    <fieldset class="field{% if form.service_type.errors %} has-error{% endif %}">
-      <legend>{{ form.service_type.label }} <span class="required">*</span></legend>
-      <div class="chips">
+    <fieldset class="field booking-step{% if form.service_type.errors %} has-error{% endif %}">
+      <legend><span class="step-number step-3" aria-hidden="true">3</span> {{ form.service_type.label }}</legend>
+      <div class="chips" id="service-choices">
         {% for radio in form.service_type %}
-          <label class="chip">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
+          <label class="chip" data-service="{{ radio.data.value }}">{{ radio.tag }}<span>{{ radio.choice_label }}</span></label>
         {% endfor %}
       </div>
+      <p class="muted small service-hint" id="service-hint" hidden>Showing the services this caregiver offers.</p>
       {% for error in form.service_type.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
     </fieldset>
 
+    <p class="booking-step-title"><span class="step-number step-4" aria-hidden="true">4</span> When</p>
     <div class="time-row">
       <div class="field{% if form.start_time.errors %} has-error{% endif %}">
         <label for="{{ form.start_time.id_for_label }}">{{ form.start_time.label }} <span class="required">*</span></label>
@@ -78,7 +87,7 @@
 
     <div class="field{% if form.notes.errors %} has-error{% endif %}">
       <div class="label-row">
-        <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+        <label for="{{ form.notes.id_for_label }}">Note for the caregiver</label>
         <span class="tag">Optional</span>
       </div>
       {{ form.notes }}
@@ -90,5 +99,27 @@
       <button type="submit" class="btn btn-dark">Send request</button>
     </div>
   </form>
+  {{ caregiver_services|json_script:"caregiver-services" }}
+  <script>
+    // Only show the services the chosen caregiver offers (story #38, Figma
+    // "Send Booking Request"). The server checks this again on submit.
+    (function () {
+      var offers = JSON.parse(document.getElementById("caregiver-services").textContent);
+      var select = document.getElementById("{{ form.caregiver.id_for_label }}");
+      var hint = document.getElementById("service-hint");
+      var chips = document.querySelectorAll("#service-choices [data-service]");
+      function update() {
+        var offered = offers[select.value] || [];
+        chips.forEach(function (chip) {
+          var show = offered.length === 0 || offered.indexOf(Number(chip.dataset.service)) !== -1;
+          chip.style.display = show ? "" : "none";
+          if (!show) chip.querySelector("input").checked = false;
+        });
+        hint.hidden = offered.length === 0;
+      }
+      select.addEventListener("change", update);
+      update();
+    })();
+  </script>
   {% endif %}
 {% endblock %}

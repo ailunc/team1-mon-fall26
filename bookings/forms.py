@@ -73,7 +73,7 @@ class BookingRequestForm(forms.ModelForm):
             "notes": forms.Textarea(
                 attrs={
                     "rows": 4,
-                    "placeholder": "e.g. Biscuit pulls on the leash near other dogs.",
+                    "placeholder": "Anything specific about this visit",
                 }
             ),
         }
@@ -99,6 +99,19 @@ class BookingRequestForm(forms.ModelForm):
         self.fields["service_type"].label_from_instance = lambda st: st.name
         for name in ("start_time", "end_time"):
             self.fields[name].input_formats = [DATETIME_FORMAT]
+
+    def caregiver_services(self):
+        """{caregiver id: [service type ids]} for the caregivers on the form.
+
+        The page uses it to show only the chosen caregiver's services.
+        """
+        offers = {}
+        rows = CaregiverService.objects.filter(
+            is_active=True, caregiver__in=self.fields["caregiver"].queryset
+        ).values_list("caregiver_id", "service_type_id")
+        for caregiver_id, service_type_id in rows:
+            offers.setdefault(caregiver_id, []).append(service_type_id)
+        return offers
 
     def clean_start_time(self):
         start = self.cleaned_data["start_time"]

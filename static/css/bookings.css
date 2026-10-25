@@ -397,3 +397,58 @@
 .request-actions-single { grid-template-columns: 1fr; }
 .request-row .status-cancelled, .request-panel .status-cancelled { background: #fdecea; color: var(--error); }
 .request-row .status-completed, .request-panel .status-completed { background: #f1ecfc; color: var(--purple-dark); }
+
+/* ---------- Request care form, numbered steps (Figma "Send Booking Request") ---------- */
+.booking-step legend,
+.booking-step > label,
+.booking-step-title { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.booking-step-title { margin: 4px 0 10px; font-size: 14px; }
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.step-1 { background: var(--yellow); }
+.step-2 { background: var(--pink); }
+.step-3 { background: var(--mint); }
+.step-4 { background: #cfe3f6; }
+
+.pet-options { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pet-options .pet-option { position: relative; margin: 0 !important; cursor: pointer; }
+.pet-option input { position: absolute; opacity: 0; pointer-events: none; }
+.pet-options .pet-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: #fff;
+}
+.pet-options .pet-option:hover { background: var(--bg); }
+.pet-options .pet-option:has(input:checked) { border: 2px solid var(--ink); padding: 11px; background: var(--peach); box-shadow: 0 3px 0 var(--ink); }
+.pet-option:has(input:focus-visible) { box-shadow: 0 0 0 3px rgba(244, 162, 122, 0.4); }
+.pet-option-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--theme-bg, var(--lavender));
+  color: var(--theme-ink, var(--purple-dark));
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.pet-option.theme-dog { --theme-bg: var(--peach); --theme-ink: #7a3410; }
+.pet-option.theme-cat { --theme-bg: var(--mint); --theme-ink: #14532d; }
+.pet-option.theme-rabbit { --theme-bg: var(--pink); --theme-ink: #4a0f2a; }
+.pet-options .pet-option-text { display: grid; line-height: 1.3; }
+.pet-options .pet-option-text strong { font-size: 14px; }
+.pet-options .pet-option-text span { color: var(--muted); font-size: 12px; font-weight: 500; }
+.service-hint { margin: 8px 0 0; }
