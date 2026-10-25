@@ -5,6 +5,8 @@ urlpatterns = [
 
     path("", views.caregiver_list, name="caregiver_list"),
     path("create/", views.create_caregiver_profile, name="create_caregiver_profile"),
+    path("address/suggestions/", views.address_suggestions, name="address_suggestions"),
+    path("address/neighborhood/", views.address_neighborhood, name="address_neighborhood"),
     path("<int:pk>/", views.caregiver_profile_detail, name="caregiver"),
     path("<int:pk>/services/", views.caregiver_list_services, name="services"),
     path("<int:pk>/services/add/", views.add_caregiver_service, name="add_caregiver_service"),

@@ -43,10 +43,10 @@ class CaregiverTestData(TestCase):
 
     def profile_data(self, **overrides):
         data = {
-            "name": "Chloe Shih",
+            "first_name": "Chloe",
+            "last_name": "Shih",
             "bio": "Lifelong dog person.",
             "years_of_experience": 4,
-            "service_area": "Brooklyn",
             "address": "70 Washington Square South",
             "service_radius_miles": 3,
             "special_skills": "Giving medication",
@@ -107,11 +107,17 @@ class CaregiverProfileFormTests(CaregiverTestData):
         form = CaregiverProfileForm(data=self.profile_data())
         self.assertTrue(form.is_valid(), form.errors)
 
-    def test_name_and_service_area_are_required(self):
-        form = CaregiverProfileForm(data=self.profile_data(name="", service_area=""))
+    def test_first_and_last_name_are_required(self):
+        form = CaregiverProfileForm(data=self.profile_data(first_name="", last_name=""))
         self.assertFalse(form.is_valid())
-        self.assertIn("name", form.errors)
-        self.assertIn("service_area", form.errors)
+        self.assertIn("first_name", form.errors)
+        self.assertIn("last_name", form.errors)
+
+    def test_edit_form_splits_the_saved_name(self):
+        caregiver = CaregiverProfile.objects.create(name="Chloe Ann Shih", service_area="Brooklyn")
+        form = CaregiverProfileForm(instance=caregiver)
+        self.assertEqual(form.initial["first_name"], "Chloe")
+        self.assertEqual(form.initial["last_name"], "Ann Shih")
 
     def test_years_of_experience_cannot_be_negative(self):
         form = CaregiverProfileForm(data=self.profile_data(years_of_experience=-1))
@@ -137,13 +143,32 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Dog walking")
 
+    def test_pet_care_skills_are_saved(self):
+        self.client.post(
+            self.url,
+            self.profile_data(pet_care_skills=["giving_medication", "leash_training"]),
+        )
+        caregiver = CaregiverProfile.objects.get()
+        self.assertEqual(caregiver.pet_care_skills, ["giving_medication", "leash_training"])
+        self.assertEqual(
+            caregiver.pet_care_skill_labels, ["Giving medication", "Leash training"]
+        )
+
+    def test_form_shows_years_as_ranges(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<option value="3">3–5 years</option>', html=True)
+        self.assertContains(response, "Pet-care skills")
+
     def test_post_saves_profile_and_redirects_to_it(self):
         response = self.client.post(self.url, self.profile_data())
         caregiver = CaregiverProfile.objects.get()
         self.assertRedirects(response, reverse("caregiver", args=[caregiver.pk]))
         self.assertEqual(caregiver.name, "Chloe Shih")
-        self.assertEqual(caregiver.service_area, "Brooklyn")
-        self.assertEqual(caregiver.years_of_experience, 4)
+        # The neighborhood comes from GeoSearch, not from the caregiver.
+        self.assertEqual(caregiver.service_area, "Greenwich Village, Manhattan")
+        # 4 years is saved as the start of its range, "3–5 years".
+        self.assertEqual(caregiver.years_of_experience, 3)
+        self.assertEqual(caregiver.experience_label, "3–5 years")
         self.assertEqual(caregiver.special_skills, "Giving medication")
         self.assertTrue(caregiver.accepting_new_bookings)
         self.assertEqual(
@@ -164,7 +189,7 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
         self.assertFalse(services.filter(price__isnull=False).exists())
 
     def test_invalid_post_saves_nothing(self):
-        response = self.client.post(self.url, self.profile_data(name=""))
+        response = self.client.post(self.url, self.profile_data(first_name=""))
         self.assertEqual(response.status_code, 200)
         self.assertFalse(CaregiverProfile.objects.exists())
 
@@ -216,11 +241,12 @@ class EditCaregiverProfileViewTests(CaregiverTestData):
         caregiver = self.make_caregiver(user=self.user)
         response = self.client.post(
             reverse("edit_caregiver_profile", args=[caregiver.pk]),
-            self.profile_data(service_area="Queens", accepting_new_bookings=""),
+            self.profile_data(first_name="Dana", last_name="Ruiz", accepting_new_bookings=""),
         )
         self.assertRedirects(response, reverse("caregiver", args=[caregiver.pk]))
         caregiver.refresh_from_db()
-        self.assertEqual(caregiver.service_area, "Queens")
+        self.assertEqual(caregiver.name, "Dana Ruiz")
+        self.assertEqual(caregiver.service_area, "Greenwich Village, Manhattan")
         self.assertFalse(caregiver.accepting_new_bookings)
 
 

@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_GET
 from django.urls import reverse
 from .models import CaregiverProfile, CaregiverService
 from .forms import CaregiverProfileForm, CaregiverServicesForm
-from .geocoding import GeocodingUnavailable, geocode
+from .geocoding import GeocodingUnavailable, autocomplete, geocode
 from .search import (
     caregivers_matching_text,
     caregivers_near,
@@ -15,6 +17,42 @@ from .search import (
     put_service_first,
     searchable_caregivers,
 )
+
+
+def _neighborhood_label(neighborhood, borough):
+    """ "Park Slope", "Brooklyn" -> "Park Slope, Brooklyn"."""
+    return ", ".join(part for part in (neighborhood, borough) if part)
+
+
+@login_required
+@require_GET
+def address_suggestions(request):
+    """NYC addresses that start like ?q=, for the profile form's address box."""
+    try:
+        suggestions = autocomplete(request.GET.get("q", ""))
+    except GeocodingUnavailable:
+        suggestions = []
+    return JsonResponse({
+        "suggestions": [
+            {
+                "address": s.address,
+                "neighborhood": _neighborhood_label(s.neighborhood, s.borough),
+            }
+            for s in suggestions
+        ]
+    })
+
+
+@login_required
+@require_GET
+def address_neighborhood(request):
+    """The neighborhood of ?address=, to fill in the profile form's Neighborhood box."""
+    try:
+        location = geocode(request.GET.get("address", ""))
+    except GeocodingUnavailable:
+        location = None
+    label = _neighborhood_label(location.neighborhood, location.borough) if location else ""
+    return JsonResponse({"neighborhood": label})
 
 
 @login_required
@@ -63,7 +101,11 @@ def create_caregiver_profile(request):
             return redirect("caregiver", pk=caregiver.pk)
 
     else:
-        form = CaregiverProfileForm()
+        # Start from the name they signed up with.
+        form = CaregiverProfileForm(initial={
+            "first_name": request.user.first_name,
+            "last_name": request.user.last_name,
+        })
 
     return render(
         request,

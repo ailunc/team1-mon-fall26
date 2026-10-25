@@ -2,6 +2,32 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+# "Years caring for pets" is picked from ranges (Figma). The stored number is
+# the start of the range, so older profiles that saved an exact number still work.
+EXPERIENCE_CHOICES = [
+    (0, "Less than 1 year"),
+    (1, "1–2 years"),
+    (3, "3–5 years"),
+    (6, "6–10 years"),
+    (11, "More than 10 years"),
+]
+
+# Optional pet-care skills shown on the profile (Figma "Pet-care skills").
+PET_CARE_SKILLS = [
+    ("giving_medication", "Giving medication"),
+    ("senior_pets", "Senior pets"),
+    ("puppies_kittens", "Puppies & kittens"),
+    ("anxious_pets", "Anxious or reactive pets"),
+    ("large_dogs", "Large dogs"),
+    ("leash_training", "Leash training"),
+    ("pet_first_aid", "Pet first aid"),
+]
+
+
+def experience_range(years):
+    """The EXPERIENCE_CHOICES value that a number of years falls into."""
+    return max(value for value, _ in EXPERIENCE_CHOICES if value <= max(years, 0))
+
 
 class CaregiverProfile(models.Model):
     # The account that owns this profile. Lets a signed-in caregiver see and
@@ -36,6 +62,18 @@ class CaregiverProfile(models.Model):
     profile_creation_date = models.DateTimeField(auto_now_add=True)
     profile_creation_date = models.DateTimeField(auto_now=True)
     supported_pet_types = models.ManyToManyField("pets.PetType", blank=True)
+    # Keys from PET_CARE_SKILLS.
+    pet_care_skills = models.JSONField(default=list, blank=True)
+
+    @property
+    def experience_label(self):
+        """Years of experience as its range, e.g. "3–5 years"."""
+        return dict(EXPERIENCE_CHOICES)[experience_range(self.years_of_experience)]
+
+    @property
+    def pet_care_skill_labels(self):
+        labels = dict(PET_CARE_SKILLS)
+        return [labels[key] for key in self.pet_care_skills if key in labels]
 
 
 class ServiceType(models.Model):
