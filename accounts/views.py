@@ -5,6 +5,17 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 
 
+def home_view(request):
+    """Send people to their own start page: log in, My pets, or caregiver requests."""
+    user = request.user
+    if not user.is_authenticated:
+        return redirect("login")
+    profile = getattr(user, "account_profile", None)
+    if hasattr(user, "caregiver_profile") or (profile and profile.role == "caregiver"):
+        return redirect("bookings:caregiver_requests")
+    return redirect("pets:list")
+
+
 def signup_view(request):
     if request.method == "POST":
         form = SignUpForm(request.POST)
