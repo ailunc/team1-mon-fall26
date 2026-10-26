@@ -2,20 +2,18 @@
 
 {% block title %}My requests · PawPal{% endblock %}
 
-{% block main_class %}page page-medium{% endblock %}
+{% block main_class %}page page-my-requests{% endblock %}
 
 {% block content %}
-  <div class="page-heading">
-    <div>
-      <h1>My booking requests</h1>
-      <p class="muted">Each request shows its current status: Pending, Accepted, Declined, Canceled or Completed.</p>
-    </div>
-    <a class="btn btn-dark" href="{% url 'bookings:booking_create' %}"><span aria-hidden="true">+</span> New request</a>
-  </div>
+  {# No visible title: the nav already says My requests. Kept for screen readers. #}
+  <h1 class="visually-hidden">My requests</h1>
 
   {% if active or history %}
     <section class="booking-section">
-      <h2>Active</h2>
+      <div class="booking-section-header">
+        <h2>Active</h2>
+        <a class="btn btn-dark" href="{% url 'bookings:booking_create' %}"><span aria-hidden="true">+</span> New request</a>
+      </div>
       {% if active %}
         <div class="card booking-list-card">
           <div class="booking-rows">
@@ -32,7 +30,6 @@
     {% if history %}
       <section class="booking-section">
         <h2>History</h2>
-        <p class="muted small">Completed, declined and canceled requests, and care that has already ended.</p>
         <div class="card booking-list-card">
           <div class="booking-rows">
             {% for booking in history %}
