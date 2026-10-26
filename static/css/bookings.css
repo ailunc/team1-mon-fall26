@@ -375,13 +375,6 @@
 .upcoming-text strong { font-size: 16px; font-weight: 700; line-height: 24.8px; }
 .upcoming-text .muted { font-size: 14px; line-height: 21.7px; color: #6a5a54; }
 
-/* Avatar colors per pet type, from the design */
-.request-avatar { --theme-bg: var(--lavender); --theme-ink: var(--purple-dark); }
-.theme-dog.request-avatar { --theme-bg: #ffd3b0; --theme-ink: #7a3410; }
-.theme-cat.request-avatar { --theme-bg: #bde0f5; --theme-ink: #2d3a8c; }
-.theme-rabbit.request-avatar { --theme-bg: #ffc8d9; --theme-ink: #7a1f45; }
-.theme-bird.request-avatar { --theme-bg: var(--yellow-soft); --theme-ink: #6b4a08; }
-.theme-fish.request-avatar { --theme-bg: var(--mint); --theme-ink: #14532d; }
 
 @media (max-width: 900px) {
   .page-requests { padding: 8px 20px 64px; }
@@ -404,15 +397,8 @@
   .request-panel-header h2 { font-size: 28px; }
 }
 
-/* ---------- Pet color themes (same palette as pet cards) ---------- */
+/* ---------- Pet avatars (colors come from the shared .theme-* palette in style.css) ---------- */
 
-.booking-avatar,
-.booking-detail-header { --theme-bg: var(--lavender); --theme-ink: var(--purple-dark); --theme-deep: #c6b5ef; }
-.theme-dog.booking-avatar, .theme-dog.booking-detail-header { --theme-bg: var(--peach); --theme-ink: #7a3410; --theme-deep: #f6b88a; }
-.theme-cat.booking-avatar, .theme-cat.booking-detail-header { --theme-bg: var(--mint); --theme-ink: #14532d; --theme-deep: #93d8b4; }
-.theme-rabbit.booking-avatar, .theme-rabbit.booking-detail-header { --theme-bg: var(--pink); --theme-ink: #7a1f45; --theme-deep: var(--pink-deep); }
-.theme-bird.booking-avatar, .theme-bird.booking-detail-header { --theme-bg: var(--yellow-soft); --theme-ink: #6b4a08; --theme-deep: #f2c95f; }
-.theme-fish.booking-avatar, .theme-fish.booking-detail-header { --theme-bg: var(--blue-soft); --theme-ink: #1e4a73; --theme-deep: #a9cbea; }
 .booking-avatar-large.booking-avatar { background: #fff; }
 
 @media (max-width: 560px) {

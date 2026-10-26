@@ -112,15 +112,8 @@
 
 .booking-pet {
   position: relative;
-  --theme-bg: var(--lavender);
-  --theme-ink: var(--purple-dark);
 }
 
-.booking-pet.theme-dog { --theme-bg: var(--peach); --theme-ink: #7a3410; }
-.booking-pet.theme-cat { --theme-bg: var(--mint); --theme-ink: #14532d; }
-.booking-pet.theme-rabbit { --theme-bg: var(--pink); --theme-ink: #7a1f45; }
-.booking-pet.theme-bird { --theme-bg: var(--yellow-soft); --theme-ink: #6b4a08; }
-.booking-pet.theme-fish { --theme-bg: #bde0f5; --theme-ink: #2d3a8c; }
 
 .booking-pet input {
   position: absolute;
