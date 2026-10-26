@@ -18,11 +18,13 @@ RELATED = ("owner", "pet__pet_type", "caregiver", "service_type")
 
 def owner_bookings(user):
     """Bookings the signed-in owner made, with the related records preloaded."""
+    Booking.update_overdue()
     return Booking.objects.filter(owner=user).select_related(*RELATED)
 
 
 def caregiver_bookings(user):
     """Booking requests sent to the signed-in user's caregiver profile."""
+    Booking.update_overdue()
     return Booking.objects.filter(caregiver__user=user).select_related(*RELATED)
 
 
@@ -186,8 +188,8 @@ def booking_complete(request, pk):
 REQUEST_TABS = [
     ("pending", "Pending"),
     ("accepted", "Accepted"),
-    ("declined", "Declined"),
     ("completed", "Completed"),
+    ("declined", "Declined"),
     ("all", "All"),
 ]
 
@@ -214,6 +216,9 @@ def caregiver_requests(request):
     if active not in by_tab:
         active = "pending"
     bookings = list(by_tab[active].order_by("start_time"))
+    # Accepted care that has started gets a "Ready to complete" tag in the list.
+    for booking in bookings:
+        booking.ready_to_complete = can_complete(booking)
 
     # The request shown in the side panel: ?b=<id> if it's in this tab, else the first.
     selected_id = request.GET.get("b", "")

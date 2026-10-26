@@ -33,6 +33,8 @@ CARE_INFO = {
     "emergency_contact_name": "Joy Wang (cousin)",
     "emergency_contact_phone": "+1 917 555 0187",
 }
+# Only shown to the caregiver while a booking is happening.
+CONTACT_FIELDS = ("vet_name", "vet_phone", "emergency_contact_name", "emergency_contact_phone")
 
 
 class OwnerCareInfoTests(TestCase):
@@ -165,13 +167,24 @@ class CaregiverPetViewTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Milo")
-        for value in CARE_INFO.values():
-            self.assertContains(response, value)
+        for key, value in CARE_INFO.items():
+            if key not in CONTACT_FIELDS:
+                self.assertContains(response, value)
         self.assertContains(response, "Your upcoming care")
 
-    def test_profile_is_available_during_the_visit(self):
+    def test_contacts_are_hidden_until_the_booking_starts(self):
+        self.book()
+        response = self.client.get(self.url)
+        self.assertContains(response, "Contacts are only shown during the booking.")
+        for key in CONTACT_FIELDS:
+            self.assertNotContains(response, CARE_INFO[key])
+
+    def test_profile_and_contacts_are_shown_during_the_visit(self):
         self.book(starts_in=timedelta(minutes=-30))
-        self.assertEqual(self.client.get(self.url).status_code, 200)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        for key in CONTACT_FIELDS:
+            self.assertContains(response, CARE_INFO[key])
 
     def test_no_access_without_an_accepted_booking(self):
         for status in (Booking.Status.PENDING, Booking.Status.DECLINED,
@@ -205,7 +218,7 @@ class CaregiverPetViewTests(TestCase):
             vet_name="", vet_phone="",
             emergency_contact_name="", emergency_contact_phone="",
         )
-        self.book()
+        self.book(starts_in=timedelta(minutes=-30))
         response = self.client.get(self.url)
         self.assertContains(response, "Ask the owner before the visit.")
         self.assertNotContains(response, "Add them")
@@ -260,8 +273,8 @@ class CareSummaryTests(TestCase):
             owner=self.owner, name="Biscuit", pet_type=PetType.objects.get(name="Dog"), **CARE_INFO
         )
 
-    def book(self, status):
-        start = timezone.now() + timedelta(days=1)
+    def book(self, status, starts_in=timedelta(days=1)):
+        start = timezone.now() + starts_in
         return Booking.objects.create(
             owner=self.owner,
             pet=self.pet,
@@ -298,12 +311,19 @@ class CareSummaryTests(TestCase):
         response = self.client.get(reverse("bookings:caregiver_requests"))
         self.assertContains(response, "Timothy hay + fresh greens")
         self.assertContains(response, "Probiotic (Bene-Bac)")
-        self.assertContains(response, "Shared with you once you accept this request.")
+        self.assertContains(response, "Contacts are only shown during the booking.")
         self.assertNotContains(response, CARE_INFO["vet_phone"])
 
-    def test_request_panel_shows_contacts_once_accepted(self):
+    def test_request_panel_hides_contacts_before_the_booking_starts(self):
         self.client.login(username="chloe", password="pass12345")
         self.book(Booking.Status.ACCEPTED)
+        response = self.client.get(reverse("bookings:caregiver_requests") + "?status=accepted")
+        self.assertContains(response, "Contacts are only shown during the booking.")
+        self.assertNotContains(response, CARE_INFO["vet_phone"])
+
+    def test_request_panel_shows_contacts_during_the_booking(self):
+        self.client.login(username="chloe", password="pass12345")
+        self.book(Booking.Status.ACCEPTED, starts_in=timedelta(minutes=-30))
         response = self.client.get(reverse("bookings:caregiver_requests") + "?status=accepted")
         self.assertContains(response, CARE_INFO["vet_phone"])
         self.assertContains(response, "Emergency: Joy Wang (cousin)")

@@ -93,6 +93,7 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
+  transform: rotate(-6deg);
 }
 
 .step-yellow { background: var(--yellow); }

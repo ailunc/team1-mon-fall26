@@ -2,6 +2,7 @@
   A pet's feeding, medication and emergency information as three cards.
   Used on the owner's pet page and on the caregiver's view of the pet.
   Pass is_owner=True on the owner's page; it changes the wording for missing info.
+  Caregivers also pass show_contacts: emergency contacts only while the care is happening.
 {% endcomment %}
 <div class="care-cards">
   <section class="care-card" aria-labelledby="care-feeding">
@@ -45,7 +46,9 @@
       {% include "pets/partials/care_icon.html" with kind="emergency" %}
       <h2 id="care-emergency">Emergency &amp; vet</h2>
     </div>
-    {% if pet.has_vet_info or pet.has_emergency_contact %}
+    {% if not is_owner and not show_contacts %}
+      <p class="muted care-empty">Contacts are only shown during the booking.</p>
+    {% elif pet.has_vet_info or pet.has_emergency_contact %}
       <dl class="care-facts">
         {% if pet.vet_name %}<div><dt>Vet</dt><dd>{{ pet.vet_name }}</dd></div>{% endif %}
         {% if pet.vet_phone %}<div><dt>Vet phone</dt><dd><a class="phone-link" href="tel:{{ pet.vet_phone|cut:' ' }}">{{ pet.vet_phone }}</a></dd></div>{% endif %}
@@ -57,4 +60,4 @@
     {% endif %}
   </section>
 </div>
-{% if is_owner %}<p class="muted small care-privacy">Emergency &amp; vet details are only shown to caregivers with an accepted booking for {{ pet.name }}.</p>{% endif %}
+{% if is_owner %}<p class="muted small care-privacy">Emergency &amp; vet details are only shown to caregivers during an accepted booking for {{ pet.name }}.</p>{% endif %}

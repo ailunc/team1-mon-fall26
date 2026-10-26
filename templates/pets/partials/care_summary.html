@@ -1,7 +1,7 @@
 {% comment %}
   Short care summary for the caregiver's request panel (Figma "Care requests").
-  Emergency contacts are only shown once the caregiver has accepted (#88).
-  Usage: include with pet=booking.pet show_contacts=booking.shows_pet_care_info
+  Emergency contacts are only shown while an accepted booking is happening (#88).
+  Usage: include with pet=booking.pet show_contacts=booking.shows_emergency_contacts
 {% endcomment %}
 <div class="care-summary">
   <section class="care-summary-item">
@@ -29,7 +29,7 @@
     <div>
       <h3>Emergency &amp; vet</h3>
       {% if not show_contacts %}
-        <p class="muted">Shared with you once you accept this request.</p>
+        <p class="muted">Contacts are only shown during the booking.</p>
       {% elif pet.has_vet_info or pet.has_emergency_contact %}
         {% if pet.has_vet_info %}<p>{{ pet.vet_name }}{% if pet.vet_name and pet.vet_phone %} · {% endif %}{% if pet.vet_phone %}<a class="phone-link" href="tel:{{ pet.vet_phone|cut:' ' }}">{{ pet.vet_phone }}</a>{% endif %}</p>{% endif %}
         {% if pet.has_emergency_contact %}<p>Emergency: {{ pet.emergency_contact_name }}{% if pet.emergency_contact_phone %} · <a class="phone-link" href="tel:{{ pet.emergency_contact_phone|cut:' ' }}">{{ pet.emergency_contact_phone }}</a>{% endif %}</p>{% endif %}

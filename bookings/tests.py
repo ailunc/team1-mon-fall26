@@ -485,7 +485,19 @@ class RespondToRequestTests(CaregiverTestData):
         booking = self.make_booking(start_time=start, end_time=start + timedelta(hours=2))
         self.respond(booking, "accept")
         booking.refresh_from_db()
-        self.assertEqual(booking.status, Booking.Status.PENDING)
+        # Nobody answered in time, so it was declined instead of accepted.
+        self.assertEqual(booking.status, Booking.Status.DECLINED)
+
+    def test_unanswered_request_is_declined_once_it_starts(self):
+        start = timezone.now() - timedelta(minutes=5)
+        expired = self.make_booking(start_time=start, end_time=start + timedelta(hours=1))
+        upcoming = self.make_booking()
+        self.client.force_login(self.owner)
+        self.client.get(reverse("bookings:booking_list"))
+        expired.refresh_from_db()
+        upcoming.refresh_from_db()
+        self.assertEqual(expired.status, Booking.Status.DECLINED)
+        self.assertEqual(upcoming.status, Booking.Status.PENDING)
 
     def test_other_caregiver_cannot_respond(self):
         booking = self.make_booking()
