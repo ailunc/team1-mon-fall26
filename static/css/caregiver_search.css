@@ -33,8 +33,7 @@
 .location-input .pin-icon { position: absolute; top: 50%; left: 14px; width: 16px; height: 16px; transform: translateY(-50%); color: var(--muted); }
 
 .search-hero input[type="text"],
-.search-hero select,
-.filter-bar select {
+.search-hero select {
   width: 100%;
   padding: 11px 14px;
   background: #fff;
@@ -103,19 +102,58 @@
 .suggestions li:hover { background: var(--bg); }
 .suggestion-kind { color: var(--muted); font-size: 11px; white-space: nowrap; }
 
-/* ---------- Service filter and sort ---------- */
+/* ---------- Service filter chips and sort ----------
+   From the Figma "Filter Caregivers by Service" frame. */
 
-.filter-bar { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 16px; }
-.filter-field label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 700; }
-.filter-field { flex: 0 1 240px; }
-.filter-bar select { border-color: var(--line-strong); border-radius: 999px; padding: 8px 14px; font-size: 13px; }
-.filter-sort { margin-left: auto; flex-basis: 180px; }
-.filter-clear { padding-bottom: 8px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.service-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 24px; }
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 6px 16px;
+  background: #fff;
+  border: 2px solid #ead3c9;
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 0.15s ease;
+}
+.filter-chip:hover { border-color: var(--ink); }
+.filter-chip.is-active { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: 0 3px 0 var(--orange); }
+.filter-chip-x { width: 14px; height: 14px; flex: none; }
+.filter-chip:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+.results-tools { display: flex; align-items: center; gap: 10px; flex: none; }
+.sort-form { margin: 0; }
+
+.pill-select {
+  min-width: 200px;
+  height: 44px;
+  padding: 0 46px 0 20px;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%231c1a1a' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 22px center;
+  border: 2px solid #ead3c9;
+  border-radius: 999px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.pill-select:hover { border-color: var(--ink); }
+.pill-select:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
 
 /* ---------- Results ---------- */
 
-.results-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.results-header h2 { font-size: 20px; }
+.results-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.results-header h2 { font-size: 26px; line-height: 1.55; letter-spacing: -0.13px; }
 
 .search-layout { display: block; }
 .search-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -228,8 +266,10 @@
   .hero-search { justify-content: center; }
   .hero-dot-pink, .hero-dot-orange { display: none; }
   .hero-dot-yellow { width: 90px; height: 90px; top: -45px; right: -45px; }
-  .filter-bar { flex-wrap: wrap; }
-  .filter-field, .filter-sort { flex: 1 1 100%; margin-left: 0; }
+  .service-filters { flex-wrap: nowrap; overflow-x: auto; margin-left: -20px; margin-right: -20px; padding: 0 20px 6px; scrollbar-width: none; }
+  .results-header { flex-wrap: wrap; }
+  .results-header h2 { font-size: 22px; }
+  .pill-select { min-width: 170px; }
   .search-results,
   .search-layout.with-map { grid-template-columns: 1fr; }
   .search-map-card { position: static; order: -1; }
