@@ -3,7 +3,11 @@ from datetime import date
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
-from django.utils.text import slugify
+
+
+# Pet colors (avatars and cards). Each pet gets one from its id, so pets look
+# varied but keep the same color on every page.
+PET_THEMES = ("peach", "mint", "pink", "yellow", "blue", "lavender")
 
 
 class Pet(models.Model):
@@ -126,8 +130,8 @@ class Pet(models.Model):
 
     @property
     def theme(self):
-        """CSS color theme for this pet's type, e.g. "dog" or "rabbit"."""
-        return slugify(self.pet_type.name) if self.pet_type_id else "other"
+        """CSS color theme for this pet, e.g. "mint" (see PET_THEMES)."""
+        return PET_THEMES[(self.pk or 0) % len(PET_THEMES)]
 
 
 class PetType(models.Model):

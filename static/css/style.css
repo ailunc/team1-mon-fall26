@@ -1180,50 +1180,16 @@ img.pet-initial-large {
   background: var(--yellow);
 }
 
-/* ---------- Color themes per pet type ---------- */
+/* ---------- Pet colors ----------
+   Pet.theme picks one of these per pet (by id). Used by pet cards, profiles,
+   booking rows and avatars, which read the --theme-* variables. */
 
-/* Default (Other and any new types): lavender. */
-.pet-card,
-.pet-profile {
-  --theme-bg: var(--lavender);
-  --theme-ink: var(--purple-dark);
-  --theme-deep: #c6b5ef;
-}
-
-.pet-card.theme-dog,
-.pet-profile.theme-dog {
-  --theme-bg: var(--peach);
-  --theme-ink: #7a3410;
-  --theme-deep: #f6b88a;
-}
-
-.pet-card.theme-cat,
-.pet-profile.theme-cat {
-  --theme-bg: var(--mint);
-  --theme-ink: #14532d;
-  --theme-deep: #93d8b4;
-}
-
-.pet-card.theme-rabbit,
-.pet-profile.theme-rabbit {
-  --theme-bg: var(--pink);
-  --theme-ink: #7a1f45;
-  --theme-deep: var(--pink-deep);
-}
-
-.pet-card.theme-bird,
-.pet-profile.theme-bird {
-  --theme-bg: var(--yellow-soft);
-  --theme-ink: #6b4a08;
-  --theme-deep: #f2c95f;
-}
-
-.pet-card.theme-fish,
-.pet-profile.theme-fish {
-  --theme-bg: var(--blue-soft);
-  --theme-ink: #1e4a73;
-  --theme-deep: #a9cbea;
-}
+.theme-peach { --theme-bg: var(--peach); --theme-ink: #7a3410; --theme-deep: #f6b88a; }
+.theme-mint { --theme-bg: var(--mint); --theme-ink: #14532d; --theme-deep: #93d8b4; }
+.theme-pink { --theme-bg: var(--pink); --theme-ink: #7a1f45; --theme-deep: var(--pink-deep); }
+.theme-yellow { --theme-bg: var(--yellow-soft); --theme-ink: #6b4a08; --theme-deep: #f2c95f; }
+.theme-blue { --theme-bg: #bde0f5; --theme-ink: #2d3a8c; --theme-deep: #8fc3e6; }
+.theme-lavender { --theme-bg: var(--lavender); --theme-ink: var(--purple-dark); --theme-deep: #c6b5ef; }
 
 /* ---------- Small screens ---------- */
 
@@ -2743,9 +2709,9 @@ img.pet-initial-large {
   font-size: 18px;
 }
 
-.page-pet-profile .theme-rabbit .pet-profile-title h1 { color: #4a0f2a; }
-.page-pet-profile .theme-rabbit .pet-profile-title p { color: #6b1a3d; }
-.page-pet-profile .theme-rabbit .pet-profile-header .btn { color: #4a0f2a; }
+.page-pet-profile .theme-pink .pet-profile-title h1 { color: #4a0f2a; }
+.page-pet-profile .theme-pink .pet-profile-title p { color: #6b1a3d; }
+.page-pet-profile .theme-pink .pet-profile-header .btn { color: #4a0f2a; }
 
 .page-pet-profile .pet-profile-header .btn {
   min-height: 50px;
