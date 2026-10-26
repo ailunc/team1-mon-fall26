@@ -2,12 +2,12 @@
 one Location box (neighborhood, ZIP code or address), Distance, "Use my
 current location", sorting, the map toggle and the no-results card."""
 
-from unittest import mock
+from unittest import mock, skip
 
 from django.test import SimpleTestCase
 
 from caregivers.search import find_neighborhood, find_zip_code, zip_codes
-from caregivers.templatetags.caregiver_tags import experience_range, initials
+from caregivers.templatetags.caregiver_tags import experience_range, initials, place_name
 
 from .test_search import NYU, URL, SearchTestData
 
@@ -77,7 +77,8 @@ class SearchPageTests(SearchTestData):
         response = self.client.get(URL, {"location": "greenwich village"})
         geocode.assert_not_called()
         self.assertEqual(self.names(response)[0], "Chloe")
-        self.assertContains(response, "near Greenwich Village, Manhattan")
+        # The heading shows just the neighborhood, like the design.
+        self.assertContains(response, "near Greenwich Village<")
 
     @mock.patch("caregivers.views.geocode")
     def test_zip_code_search(self, geocode):
@@ -198,6 +199,8 @@ class NoResultsTests(SearchTestData):
         self.assertContains(response, "Try a larger distance")
 
 
+# The map is hidden for now (the Figma design has none). Remove this when it comes back.
+@skip("Map is hidden for now; see caregiver_list.html")
 class MapToggleTests(SearchTestData):
     def test_map_is_hidden_by_default(self):
         response = self.client.get(URL)
@@ -209,3 +212,9 @@ class MapToggleTests(SearchTestData):
         self.assertNotContains(response, 'id="map-panel" hidden')
         self.assertContains(response, "Hide map")
         self.assertContains(response, "with-map")
+
+
+class PlaceNameTests(SimpleTestCase):
+    def test_results_heading_drops_the_borough(self):
+        self.assertEqual(place_name("Park Slope, Brooklyn"), "Park Slope")
+        self.assertEqual(place_name("10012 (Greenwich Village)"), "10012 (Greenwich Village)")

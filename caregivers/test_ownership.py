@@ -103,10 +103,8 @@ class ServicePriceRulesTests(CaregiverTestData):
     def form(self, **overrides):
         return CaregiverServicesForm(data=self.service_data(**overrides))
 
-    def test_active_service_needs_a_price(self):
-        form = self.form(price="", is_active="on")
-        self.assertFalse(form.is_valid())
-        self.assertIn("Please set a price before activating", form.errors["price"][0])
+    def test_active_service_can_skip_the_price(self):
+        self.assertTrue(self.form(price="", is_active="on").is_valid())
 
     def test_inactive_service_can_be_saved_without_a_price(self):
         self.assertTrue(self.form(price="", is_active="").is_valid())
@@ -122,12 +120,14 @@ class ServicePriceRulesTests(CaregiverTestData):
     def test_price_input_has_a_minimum(self):
         self.assertIn('min="0"', str(self.form()["price"]))
 
-    def test_add_page_rejects_active_service_without_price(self):
+    def test_add_page_saves_active_service_without_price(self):
         caregiver = self.make_caregiver(user=self.user)
         self.client.force_login(self.user)
         response = self.client.post(
             reverse("add_caregiver_service", args=[caregiver.pk]),
             self.service_data(price=""),
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(CaregiverService.objects.filter(caregiver=caregiver).exists())
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            CaregiverService.objects.filter(caregiver=caregiver, is_active=True).exists()
+        )

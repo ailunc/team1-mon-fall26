@@ -63,6 +63,22 @@ def address_neighborhood(request):
     return JsonResponse({"neighborhood": label})
 
 
+def save_selected_services(caregiver, selected):
+    """Services picked on the profile form are offered right away, with or
+    without a price. Unpicked ones are switched off but keep their details."""
+    selected_ids = {service_type.pk for service_type in selected}
+    for service_type in selected:
+        offer, created = CaregiverService.objects.get_or_create(
+            caregiver=caregiver, service_type=service_type
+        )
+        if not created and not offer.is_active:
+            offer.is_active = True
+            offer.save(update_fields=["is_active"])
+    CaregiverService.objects.filter(caregiver=caregiver, is_active=True).exclude(
+        service_type_id__in=selected_ids
+    ).update(is_active=False)
+
+
 @login_required
 def create_caregiver_profile(request):
     # Each account has at most one caregiver profile.
@@ -86,17 +102,7 @@ def create_caregiver_profile(request):
                     "Please save your profile again later.",
                 )
 
-            selected_services = form.cleaned_data["selected_services"]
-
-            for service_type in selected_services:
-                CaregiverService.objects.get_or_create(
-                    caregiver=caregiver,
-                    service_type=service_type,
-                    defaults={
-                        "price": None,
-                        "is_active": False,
-                    }
-                )
+            save_selected_services(caregiver, form.cleaned_data["selected_services"])
 
             return redirect("caregiver", pk=caregiver.pk)
 
@@ -135,23 +141,13 @@ def edit_caregiver_profile(request, pk):
                     "Please save your profile again later.",
                 )
 
-            selected_services = form.cleaned_data["selected_services"]
-
-            for service_type in selected_services:
-                CaregiverService.objects.get_or_create(
-                    caregiver=caregiver,
-                    service_type=service_type,
-                    defaults={
-                        "price": None,
-                        "is_active": False,
-                    }
-                )
+            save_selected_services(caregiver, form.cleaned_data["selected_services"])
 
             return redirect("caregiver", pk=caregiver.pk)
 
     else:
         existing_services = CaregiverService.objects.filter(
-            caregiver=caregiver
+            caregiver=caregiver, is_active=True
         ).values_list("service_type_id", flat=True)
 
         form = CaregiverProfileForm(
@@ -199,8 +195,9 @@ def delete_caregiver_service(request, pk, service_id):
 def caregiver_profile_detail(request, pk):
     caregiver = get_object_or_404(CaregiverProfile, pk=pk)
 
+    # Only services the caregiver currently offers (unpicked ones are switched off).
     provided_services = CaregiverService.objects.filter(
-        caregiver=caregiver
+        caregiver=caregiver, is_active=True
     ).select_related("service_type")
 
     service_listings = provided_services.filter(
