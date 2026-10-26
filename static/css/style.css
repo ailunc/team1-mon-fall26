@@ -197,6 +197,11 @@ a {
   font-weight: 700;
 }
 
+/* Caregivers get a peach avatar in the header (Figma "Care requests"). */
+.avatar-caregiver {
+  background: #f4a27a;
+}
+
 .account-dropdown {
   position: absolute;
   right: 0;
@@ -1952,43 +1957,49 @@ img.pet-initial-large {
 
 .care-summary {
   display: grid;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
 }
 
 .care-summary-item {
   display: flex;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: #fcf6f2;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: #fff8f5;
+  box-shadow: 0 0 0 1.5px #f2e2da;
 }
 
 .care-summary-item .care-icon {
-  width: 26px;
-  height: 26px;
+  flex: none;
+  width: 34px;
+  height: 34px;
 }
 
 .care-summary-item .care-icon svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 /* Two classes deep so the request panel's own h3/p sizes don't override these. */
 .care-summary .care-summary-item h3 {
-  margin: 3px 0 2px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.4;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24.8px;
+  letter-spacing: -0.08px;
 }
 
 .care-summary .care-summary-item p {
-  padding-top: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  padding-top: 2px;
+  font-size: 14px;
+  line-height: 21.7px;
   color: #3d322e;
+}
+
+.care-summary .care-summary-item p + p {
+  padding-top: 0;
 }
 
 /* Caregiver's upcoming visits for this pet */

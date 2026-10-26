@@ -105,4 +105,8 @@ class CaregiverPetView(LoginRequiredMixin, DetailView):
             .select_related("service_type")
             .order_by("start_time")
         )
+        # Emergency and vet contacts only while one of these bookings is happening.
+        context["show_contacts"] = (
+            context["care_bookings"].filter(start_time__lte=timezone.now()).exists()
+        )
         return context

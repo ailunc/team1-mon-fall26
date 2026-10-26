@@ -55,7 +55,7 @@
         <p>{{ pet.description|linebreaksbr }}</p>
       {% endif %}
 
-      {% include "pets/partials/care_info.html" with is_owner=False %}
+      {% include "pets/partials/care_info.html" with is_owner=False show_contacts=show_contacts %}
     </div>
   </article>
 {% endblock %}

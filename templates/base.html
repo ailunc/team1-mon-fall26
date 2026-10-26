@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="{% static 'css/style.css' %}?v=7" rel="stylesheet">
-  <link href="{% static 'css/bookings.css' %}?v=4" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}?v=8" rel="stylesheet">
+  <link href="{% static 'css/bookings.css' %}?v=6" rel="stylesheet">
 </head>
 <body>
   {% block site_header %}
@@ -45,7 +45,7 @@
         <details class="account-menu">
           <summary>
             <span class="account-role">{% if user.caregiver_profile or user.account_profile.role == "caregiver" %}Caregiver{% else %}Pet owner{% endif %}</span>
-            <span class="avatar">{% if user.first_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}{{ user.username|slice:":2"|upper }}{% endif %}</span>
+            <span class="avatar{% if user.caregiver_profile or user.account_profile.role == "caregiver" %} avatar-caregiver{% endif %}">{% if user.first_name %}{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}{% else %}{{ user.username|slice:":2"|upper }}{% endif %}</span>
           </summary>
           <div class="account-dropdown">
             <span class="account-name">{{ user.get_full_name|default:user.username }}</span>

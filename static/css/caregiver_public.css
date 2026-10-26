@@ -369,11 +369,12 @@
 }
 
 .caregiver-booking-button:hover {
-  background: #fff3d7;
+  background: #f3eefc;
 }
 
+/* Keyboard focus: a soft white ring that fits the purple card. */
 .caregiver-booking-button:focus-visible {
-  outline: 3px solid var(--yellow);
+  outline: 3px solid rgba(255, 255, 255, 0.6);
   outline-offset: 3px;
 }
 

@@ -239,6 +239,23 @@
 .request-row .status-pending .status-dot, .request-panel .status-pending .status-dot { background: #6b4500; }
 .request-row .status-accepted, .request-panel .status-accepted { background: var(--success-bg); color: var(--success-ink); }
 .request-row .status-declined, .request-panel .status-declined { background: var(--tag-bg); color: #6a5a54; }
+.request-row .status-completed, .request-panel .status-completed { background: #dcebfa; color: #1f4e79; }
+.request-row .status-completed .status-dot, .request-panel .status-completed .status-dot { background: #1f4e79; }
+
+.request-row-tags { display: flex; align-items: center; gap: 16px; flex: none; }
+
+/* Accepted care that has started and can be marked as completed */
+.ready-tag {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff0c2;
+  color: #6b4500;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18.6px;
+  white-space: nowrap;
+}
 
 .request-panel {
   display: grid;
@@ -290,6 +307,17 @@
 .request-actions .btn-dark { box-shadow: 0 4px 0 var(--orange); }
 .request-actions .btn-outline { border: 0; box-shadow: 0 0 0 2px #ead3c9, 0 4px 0 #ead3c9; }
 .request-closed { font-size: 14px; }
+.request-actions .btn .check-icon { flex: none; margin-right: 8px; }
+.request-panel .request-complete-hint { padding-top: 0; font-size: 14px; line-height: 21.7px; text-align: center; color: #6a5a54; }
+.request-panel .request-done {
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: #f8e6df;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 23.25px;
+  color: #3d322e;
+}
 
 .upcoming-care {
   display: grid;
@@ -317,10 +345,16 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  height: 100%;
   padding: 14px;
   background: var(--bg);
+  border: 2px solid transparent;
   border-radius: 22px;
+  color: var(--ink);
+  text-decoration: none;
 }
+
+.upcoming-item:hover { border-color: #ead3c9; }
 
 .date-chip {
   display: grid;
@@ -351,7 +385,7 @@
 
 @media (max-width: 900px) {
   .page-requests { padding: 8px 20px 64px; }
-  .requests-layout { grid-template-columns: 1fr; }
+  .requests-layout { grid-template-columns: minmax(0, 1fr); }
   .requests-heading h1 { font-size: 36px; }
 }
 
@@ -360,7 +394,10 @@
   .request-tabs { width: 100%; overflow-x: auto; }
   .request-tab { gap: 4px; min-height: 38px; padding: 0 8px; font-size: 12px; }
   .tab-count { min-width: 20px; padding: 0 5px; font-size: 11px; line-height: 20px; }
-  .request-row { gap: 12px; padding: 14px; }
+  /* Phones: the tag and status pill move under the text, lined up with it. */
+  .request-row { flex-wrap: wrap; gap: 8px 12px; padding: 14px; }
+  .request-row-text { flex-basis: calc(100% - 64px); }
+  .request-row-tags { flex-wrap: wrap; gap: 8px; margin-left: 64px; }
   .request-row-text strong { font-size: 18px; }
   .request-row-meta { font-size: 14px; }
   .request-panel { padding: 20px; }
@@ -394,9 +431,8 @@
 /* Cancel (#43) and complete (#109) */
 .booking-cancel-row { display: flex; justify-content: flex-end; margin-top: 24px; }
 .booking-cancel h1 { margin-top: 0; }
-.request-actions-single { grid-template-columns: 1fr; }
+.request-actions-single { grid-template-columns: 1fr; row-gap: 10px; }
 .request-row .status-cancelled, .request-panel .status-cancelled { background: #fdecea; color: var(--error); }
-.request-row .status-completed, .request-panel .status-completed { background: #f1ecfc; color: var(--purple-dark); }
 
 /* ---------- "My booking requests" panel on My pets (Figma Home) ---------- */
 

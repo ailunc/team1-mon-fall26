@@ -92,7 +92,11 @@ class CancelBookingTests(SitterTestData):
             response = self.client.post(cancel_url(booking), follow=True)
             self.assertContains(response, "can no longer be canceled")
             booking.refresh_from_db()
-            self.assertEqual(booking.status, fields["status"])
+            # A pending request whose start time passed is declined automatically.
+            expected = (
+                Status.DECLINED if fields["status"] == Status.PENDING else fields["status"]
+            )
+            self.assertEqual(booking.status, expected)
 
     def test_only_the_owner_can_cancel(self):
         booking = self.make_booking()
@@ -157,6 +161,30 @@ class MarkCompletedTests(SitterTestData):
         booking.refresh_from_db()
         self.assertEqual(booking.status, Status.COMPLETED)
 
+    def test_care_is_completed_automatically_a_day_after_it_ends(self):
+        def ended(hours_ago):
+            end = timezone.now() - timedelta(hours=hours_ago)
+            return self.make_booking(
+                status=Status.ACCEPTED, start_time=end - timedelta(hours=1), end_time=end
+            )
+
+        overdue, recent = ended(25), ended(23)
+        response = self.client.get(
+            reverse("bookings:caregiver_requests"), {"status": "completed"}
+        )
+        overdue.refresh_from_db()
+        recent.refresh_from_db()
+        self.assertEqual(overdue.status, Status.COMPLETED)
+        self.assertTrue(overdue.completed_automatically)
+        self.assertEqual(recent.status, Status.ACCEPTED)
+        self.assertContains(response, "Completed automatically 24 hours after the booking ended.")
+
+    def test_completing_it_yourself_is_not_automatic(self):
+        booking = self.make_booking(status=Status.ACCEPTED, **started())
+        self.client.post(complete_url(booking))
+        booking.refresh_from_db()
+        self.assertFalse(booking.completed_automatically)
+
     def test_status_stays_completed_after_refresh(self):
         booking = self.make_booking(status=Status.ACCEPTED, **started())
         self.client.post(complete_url(booking))
@@ -190,7 +218,11 @@ class MarkCompletedTests(SitterTestData):
             response = self.client.post(complete_url(booking), follow=True)
             self.assertContains(response, "Only accepted care that has started")
             booking.refresh_from_db()
-            self.assertEqual(booking.status, fields["status"])
+            # A pending request whose start time passed is declined automatically.
+            expected = (
+                Status.DECLINED if fields["status"] == Status.PENDING else fields["status"]
+            )
+            self.assertEqual(booking.status, expected)
 
     def test_completed_booking_cannot_be_accepted_or_declined(self):
         booking = self.make_booking(status=Status.ACCEPTED, **started())
@@ -244,7 +276,7 @@ class MarkCompletedTests(SitterTestData):
             reverse("bookings:caregiver_requests"), {"status": "completed"}
         )
         self.assertEqual(response.context["bookings"], [booking])
-        self.assertContains(response, "You marked this booking as completed")
+        self.assertContains(response, "You completed this booking.")
 
     def test_completed_care_keeps_its_time_slot(self):
         # #73: completing a booking doesn't reopen its time slot.

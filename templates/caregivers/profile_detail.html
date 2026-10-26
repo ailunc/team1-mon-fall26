@@ -5,9 +5,9 @@
 {% block main_class %}page page-wide page-caregiver-profile{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/caregiver_public.css' %}?v=4">
+<link rel="stylesheet" href="{% static 'css/caregiver_public.css' %}?v=5">
 
-{% if not is_own %}<a class="caregiver-back" href="{% url 'home' %}">← Back to PawPal</a>{% endif %}
+{% if not is_own %}<a class="caregiver-back" href="{% url 'caregiver_list' %}">← Back to find caregivers</a>{% endif %}
 
 {# On a caregiver's own profile there's no request card, so the profile sits in the middle. #}
 <div class="caregiver-public-grid{% if is_own %} is-own-profile{% endif %}">

@@ -59,7 +59,7 @@
         {% elif booking.status == "completed" %}
           <div class="alert alert-success booking-outcome" role="status">
             <span class="alert-icon" aria-hidden="true">✓</span>
-            <span><strong>Care completed.</strong> You marked this booking as completed on {{ booking.updated_at|date:"M j, g:i A" }}.</span>
+            <span><strong>Care completed.</strong> {% if booking.completed_automatically %}Completed automatically 24 hours after the booking ended.{% else %}You marked this booking as completed on {{ booking.updated_at|date:"M j, g:i A" }}.{% endif %}</span>
           </div>
         {% elif booking.status == "cancelled" %}
           <div class="alert alert-info booking-outcome" role="status">
@@ -83,7 +83,7 @@
       {% elif booking.status == "completed" %}
         <div class="alert alert-success booking-outcome" role="status">
           <span class="alert-icon" aria-hidden="true">✓</span>
-          <span><strong>Care completed.</strong> {{ booking.caregiver.name }} marked this booking as completed on {{ booking.updated_at|date:"M j, g:i A" }}.</span>
+          <span><strong>Care completed.</strong> {% if booking.completed_automatically %}Completed automatically 24 hours after the booking ended.{% else %}{{ booking.caregiver.name }} marked this booking as completed on {{ booking.updated_at|date:"M j, g:i A" }}.{% endif %}</span>
         </div>
       {% elif booking.status == "cancelled" %}
         <div class="alert alert-info booking-outcome" role="status">
