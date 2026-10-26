@@ -113,8 +113,8 @@ def nearest_neighborhood(latitude, longitude):
 
 
 def listed_services():
-    """Services a caregiver shows on search cards: active and with a price."""
-    return CaregiverService.objects.filter(is_active=True, price__isnull=False)
+    """Services a caregiver offers (active). A price is optional."""
+    return CaregiverService.objects.filter(is_active=True)
 
 
 def searchable_caregivers(viewer, available_only=True):
@@ -186,7 +186,7 @@ def offered_service_types():
 
 
 def offering_service(caregivers, service_type):
-    """Caregivers who list this service as active and priced (#34)."""
+    """Caregivers who offer this service (#34)."""
     offers = listed_services().filter(
         caregiver=OuterRef("pk"), service_type=service_type
     )

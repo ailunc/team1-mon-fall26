@@ -27,7 +27,7 @@ class FilterTestData(SearchTestData):
         cls.offer(cls.midtown, cls.walking, "30.00")
         cls.offer(cls.midtown, cls.sitting, "60.00")
         cls.offer(cls.lic, cls.sitting, "55.00")
-        # Listed but not shown: inactive, or no price yet.
+        # Switched off, so not shown. A price is optional.
         cls.offer(cls.boerum, cls.sitting, "40.00", is_active=False)
         cls.offer(cls.staten, cls.grooming, None)
         # Not taking new bookings, but offers walks.
@@ -44,9 +44,10 @@ class FilterTestData(SearchTestData):
 
 
 class ServiceFilterHelperTests(FilterTestData):
-    def test_offered_service_types_are_listed_and_priced_ones_only(self):
+    def test_offered_service_types_are_active_ones_with_or_without_a_price(self):
         self.assertEqual(
-            [st.name for st in offered_service_types()], ["Dog walking", "Pet sitting"]
+            [st.name for st in offered_service_types()],
+            ["Dog walking", "Grooming", "Pet sitting"],
         )
 
     def test_offering_service(self):
@@ -75,8 +76,12 @@ class FilterByServiceTests(FilterTestData):
             f'<a class="filter-chip" href="?service={self.sitting.pk}">Pet sitting</a>',
             html=True,
         )
-        # Nobody lists grooming with a price, so it isn't offered as a filter.
-        self.assertNotContains(response, "Grooming")
+        # Grooming has no price yet, but it's offered, so it's a filter too.
+        self.assertContains(
+            response,
+            f'<a class="filter-chip" href="?service={self.grooming.pk}">Grooming</a>',
+            html=True,
+        )
 
     def test_only_caregivers_offering_the_service_appear(self):
         response = self.client.get(URL, {"service": self.sitting.pk})
@@ -192,7 +197,7 @@ class FilterByServiceTests(FilterTestData):
         self.assertContains(response, "No caregivers offer Pet sitting near")
 
     def test_unknown_service_is_ignored_with_a_message(self):
-        for value in ("999999", "abc", str(self.grooming.pk)):
+        for value in ("999999", "abc"):
             response = self.client.get(URL, {"service": value})
             self.assertContains(response, "Choose a service from the list.")
             self.assertEqual(len(self.names(response)), 5)
