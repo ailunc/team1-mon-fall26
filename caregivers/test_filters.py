@@ -27,7 +27,7 @@ class FilterTestData(SearchTestData):
         cls.offer(cls.midtown, cls.walking, "30.00")
         cls.offer(cls.midtown, cls.sitting, "60.00")
         cls.offer(cls.lic, cls.sitting, "55.00")
-        # Listed but not shown: inactive, or no price yet.
+        # Switched off, so not shown. A price is optional.
         cls.offer(cls.boerum, cls.sitting, "40.00", is_active=False)
         cls.offer(cls.staten, cls.grooming, None)
         # Not taking new bookings, but offers walks.
@@ -44,9 +44,10 @@ class FilterTestData(SearchTestData):
 
 
 class ServiceFilterHelperTests(FilterTestData):
-    def test_offered_service_types_are_listed_and_priced_ones_only(self):
+    def test_offered_service_types_are_active_ones_with_or_without_a_price(self):
         self.assertEqual(
-            [st.name for st in offered_service_types()], ["Dog walking", "Pet sitting"]
+            [st.name for st in offered_service_types()],
+            ["Dog walking", "Grooming", "Pet sitting"],
         )
 
     def test_offering_service(self):
@@ -59,15 +60,28 @@ class FilterByServiceTests(FilterTestData):
 
     def test_owner_can_see_the_service_types(self):
         response = self.client.get(URL)
-        self.assertContains(response, "All services")
+        # "All services" is the selected chip when no filter is on.
         self.assertContains(
-            response, f'<option value="{self.walking.pk}">Dog walking</option>', html=True
+            response,
+            '<a class="filter-chip is-active" href="?" aria-current="true">All services</a>',
+            html=True,
         )
         self.assertContains(
-            response, f'<option value="{self.sitting.pk}">Pet sitting</option>', html=True
+            response,
+            f'<a class="filter-chip" href="?service={self.walking.pk}">Dog walking</a>',
+            html=True,
         )
-        # Nobody lists grooming with a price, so it isn't offered as a filter.
-        self.assertNotContains(response, ">Grooming</option>")
+        self.assertContains(
+            response,
+            f'<a class="filter-chip" href="?service={self.sitting.pk}">Pet sitting</a>',
+            html=True,
+        )
+        # Grooming has no price yet, but it's offered, so it's a filter too.
+        self.assertContains(
+            response,
+            f'<a class="filter-chip" href="?service={self.grooming.pk}">Grooming</a>',
+            html=True,
+        )
 
     def test_only_caregivers_offering_the_service_appear(self):
         response = self.client.get(URL, {"service": self.sitting.pk})
@@ -78,11 +92,15 @@ class FilterByServiceTests(FilterTestData):
         response = self.client.get(URL, {"service": self.sitting.pk})
         self.assertNotIn("Priya", self.names(response))
 
-    def test_selected_service_is_kept_in_the_form(self):
+    def test_selected_service_chip_is_highlighted(self):
         response = self.client.get(URL, {"service": self.walking.pk})
+        chips = response.content.decode().split('class="filter-chip is-active"')
+        # Only one chip is selected: Dog walking, not "All services".
+        self.assertEqual(len(chips), 2)
+        self.assertIn("Dog walking", chips[1].split("</a>")[0])
         self.assertContains(
             response,
-            f'<option value="{self.walking.pk}" selected>Dog walking</option>',
+            '<a class="filter-chip" href="?">All services</a>',
             html=True,
         )
 
@@ -109,6 +127,52 @@ class FilterByServiceTests(FilterTestData):
         self.assertEqual(self.names(everyone), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"])
         self.assertNotContains(everyone, "Clear filter")
 
+    def test_selected_chip_clears_the_filter(self):
+        response = self.client.get(URL, {"service": self.walking.pk, "distance": "2"})
+        active = response.content.decode().split('class="filter-chip is-active"')[1]
+        self.assertTrue(active.startswith(' href="?distance=2"'))
+
+    def test_chips_keep_the_location_and_distance(self):
+        response = self.client.get(URL, {"location": "x", **NYU, "distance": "2"})
+        chip = next(
+            c for c in response.context["service_filters"] if c["type"] == self.sitting
+        )
+        self.assertIn(f"service={self.sitting.pk}", chip["query"])
+        self.assertIn("lat=40.729", chip["query"])
+        self.assertIn("distance=2", chip["query"])
+
+    def test_switching_chips_replaces_the_service(self):
+        response = self.client.get(URL, {"service": self.walking.pk})
+        chip = next(
+            c for c in response.context["service_filters"] if c["type"] == self.sitting
+        )
+        self.assertEqual(chip["query"], f"service={self.sitting.pk}")
+
+    def test_no_chips_when_nobody_is_found(self):
+        response = self.client.get(URL, {"area": "BX0803", "distance": "1"})
+        self.assertEqual(self.names(response), [])
+        self.assertNotContains(response, 'class="service-filters"')
+
+    def test_chips_stay_when_a_filter_finds_nobody(self):
+        response = self.client.get(
+            URL, {"area": "MN0202", "service": self.sitting.pk, "distance": "1"}
+        )
+        self.assertEqual(self.names(response), [])
+        self.assertContains(response, 'class="service-filters"')
+        self.assertContains(response, "Clear filter")
+
+    def test_sort_menu_sits_in_the_results_heading(self):
+        response = self.client.get(URL, {"location": "x", **NYU, "sort": "experience"})
+        self.assertContains(
+            response,
+            '<option value="experience" selected>Most experienced</option>',
+            html=True,
+        )
+        # Sorting keeps the search; the sort form carries it as hidden fields.
+        self.assertContains(
+            response, '<input type="hidden" name="lat" value="40.729">', html=True
+        )
+
     def test_clearing_the_filter_keeps_the_location(self):
         response = self.client.get(
             URL, {"location": "x", **NYU, "service": self.walking.pk, "distance": "2"}
@@ -133,7 +197,7 @@ class FilterByServiceTests(FilterTestData):
         self.assertContains(response, "No caregivers offer Pet sitting near")
 
     def test_unknown_service_is_ignored_with_a_message(self):
-        for value in ("999999", "abc", str(self.grooming.pk)):
+        for value in ("999999", "abc"):
             response = self.client.get(URL, {"service": value})
             self.assertContains(response, "Choose a service from the list.")
             self.assertEqual(len(self.names(response)), 5)

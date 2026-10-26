@@ -175,7 +175,7 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
             set(caregiver.supported_pet_types.all()), {self.dog, self.cat}
         )
 
-    def test_selected_services_are_saved_as_inactive_listings(self):
+    def test_selected_services_are_offered_right_away(self):
         self.client.post(
             self.url, self.profile_data(selected_services=[self.walking.pk, self.sitting.pk])
         )
@@ -184,8 +184,8 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
             set(services.values_list("service_type__name", flat=True)),
             {"Dog walking", "Pet sitting"},
         )
-        # They need a price before they are shown as listings.
-        self.assertFalse(services.filter(is_active=True).exists())
+        # Offered (shown in search and booking) without needing a price.
+        self.assertEqual(services.filter(is_active=True).count(), 2)
         self.assertFalse(services.filter(price__isnull=False).exists())
 
     def test_invalid_post_saves_nothing(self):
@@ -208,17 +208,17 @@ class CaregiverProfileDetailViewTests(CaregiverTestData):
         self.assertContains(response, "3–5 years caring for pets")
         self.assertContains(response, "Dog")
 
-    def test_only_active_priced_services_are_listed(self):
+    def test_only_offered_services_are_listed(self):
         caregiver = self.make_caregiver()
         self.make_service(caregiver, self.walking, price=Decimal("25.00"))
         self.make_service(caregiver, self.sitting, price=None, is_active=False)
         response = self.client.get(reverse("caregiver", args=[caregiver.pk]))
-        listings = list(response.context["service_listings"])
-        self.assertEqual([s.service_type for s in listings], [self.walking])
         # Prices are hidden on the profile for now.
         self.assertNotContains(response, "$25.00")
-        # Both services still show under "Services".
-        self.assertEqual(len(response.context["provided_services"]), 2)
+        # Switched-off services don't show under "Services".
+        self.assertEqual(
+            [s.service_type for s in response.context["provided_services"]], [self.walking]
+        )
 
     def test_profile_shows_skills_and_first_name(self):
         caregiver = self.make_caregiver(pet_care_skills=["leash_training"])
@@ -252,6 +252,22 @@ class EditCaregiverProfileViewTests(CaregiverTestData):
         form = response.context["form"]
         self.assertEqual(form.instance, caregiver)
         self.assertIn(self.walking.pk, list(form.initial["selected_services"]))
+
+    def test_unpicked_services_are_switched_off_and_repicked_ones_back_on(self):
+        caregiver = self.make_caregiver(user=self.user)
+        walk = self.make_service(caregiver, self.walking, price=Decimal("25.00"))
+        url = reverse("edit_caregiver_profile", args=[caregiver.pk])
+        self.client.post(url, self.profile_data(selected_services=[self.sitting.pk]))
+        walk.refresh_from_db()
+        self.assertFalse(walk.is_active)
+        # Its price is kept for when it's picked again.
+        self.assertEqual(walk.price, Decimal("25.00"))
+        self.assertTrue(
+            CaregiverService.objects.get(caregiver=caregiver, service_type=self.sitting).is_active
+        )
+        self.client.post(url, self.profile_data(selected_services=[self.walking.pk]))
+        walk.refresh_from_db()
+        self.assertTrue(walk.is_active)
 
     def test_post_updates_profile(self):
         caregiver = self.make_caregiver(user=self.user)

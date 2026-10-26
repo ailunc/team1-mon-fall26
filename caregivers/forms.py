@@ -168,17 +168,3 @@ class CaregiverServicesForm(forms.ModelForm):
         if price is not None and price < 0:
             raise forms.ValidationError("Price can't be negative.")
         return price
-
-    def clean(self):
-        cleaned_data = super().clean()
-
-        is_active = cleaned_data.get("is_active")
-        price = cleaned_data.get("price")
-
-        if is_active and price is None and "price" not in self.errors:
-            self.add_error(
-                "price",
-                "Please set a price before activating this service."
-            )
-
-        return cleaned_data

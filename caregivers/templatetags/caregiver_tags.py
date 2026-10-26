@@ -19,6 +19,12 @@ def initials(name):
 
 
 @register.filter
+def place_name(label):
+    """ "Park Slope, Brooklyn" -> "Park Slope" for the results heading, like the design."""
+    return str(label).split(",")[0].strip()
+
+
+@register.filter
 def avatar_theme(caregiver):
     return AVATAR_THEMES[(caregiver.pk or 0) % len(AVATAR_THEMES)]
 
