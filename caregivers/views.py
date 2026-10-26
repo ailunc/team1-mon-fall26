@@ -450,6 +450,11 @@ def caregiver_list(request):
             "availability": availability,
             "show_map": params.get("map") == "1",
             "query_without_service": _without(params, "service"),
+            # One chip per service (#34); each link keeps the rest of the search.
+            "service_filters": [
+                {"type": st, "query": _with(params, service=st.pk)}
+                for st in service_types
+            ],
             "neighborhood_options": [
                 {
                     "label": f"{n['name']}, {n['borough']}",
@@ -499,6 +504,14 @@ def _without(params, *keys):
     kept = params.copy()
     for key in keys:
         kept.pop(key, None)
+    return kept.urlencode()
+
+
+def _with(params, **values):
+    """This search's query string with the given keys set (or replaced)."""
+    kept = params.copy()
+    for key, value in values.items():
+        kept[key] = str(value)
     return kept.urlencode()
 
 

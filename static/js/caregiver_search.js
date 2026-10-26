@@ -135,7 +135,13 @@
   // ---------- Filters ----------
   // Changing a filter or the sort runs the search again right away.
   document.querySelectorAll("[data-autosubmit]").forEach(function (select) {
-    select.addEventListener("change", function () { select.form.submit(); });
+    select.addEventListener("change", function () {
+      // Leave out an empty map field so the address stays clean.
+      select.form.querySelectorAll("input[name=map]").forEach(function (field) {
+        field.disabled = !field.value;
+      });
+      select.form.submit();
+    });
   });
 
   // ---------- Map (hidden until the owner asks for it) ----------
@@ -200,6 +206,13 @@
     window.history.replaceState(null, "", url);
     document.querySelectorAll("#caregiver-filters input[name=map]").forEach(function (field) {
       field.value = open ? "1" : "";
+    });
+    // The service chips are links, so they carry the map choice too.
+    document.querySelectorAll(".filter-chip").forEach(function (chip) {
+      var target = new URL(chip.href);
+      if (open) target.searchParams.set("map", "1");
+      else target.searchParams.delete("map");
+      chip.href = target.toString();
     });
     if (open) {
       drawMap();

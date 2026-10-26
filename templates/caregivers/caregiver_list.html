@@ -61,33 +61,23 @@
       {% if availability != "available" %}<input type="hidden" name="availability" value="{{ availability }}">{% endif %}
     </form>
 
-    {# Service filter (#34). Kept as a menu for now; the design shows it as chips. #}
-    <form method="get" class="filter-bar" id="caregiver-filters">
-      {% for key, value in request.GET.items %}
-        {% if key != "service" and key != "sort" and key != "map" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
-      {% endfor %}
-      <input type="hidden" name="map" value="{% if show_map %}1{% endif %}">
-      <div class="filter-field">
-        <label for="filter-service">Service</label>
-        <select id="filter-service" name="service" data-autosubmit>
-          <option value="">All services</option>
-          {% for st in service_types %}
-            <option value="{{ st.pk }}"{% if st == service %} selected{% endif %}>{{ st.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      {% if service %}
-        <a class="filter-clear" href="?{{ query_without_service }}">Clear filter</a>
-      {% endif %}
-      <div class="filter-field filter-sort">
-        <label for="filter-sort">Sort by</label>
-        <select id="filter-sort" name="sort" data-autosubmit>
-          {% for value, label in sort_choices %}
-            <option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </form>
+    {# Service filter (#34), as chips like the Figma "Filter Caregivers by Service" frame. #}
+    {% if caregivers or service %}
+      <nav class="service-filters" aria-label="Filter by service">
+        <a class="filter-chip{% if not service %} is-active{% endif %}" href="?{{ query_without_service }}"{% if not service %} aria-current="true"{% endif %}>All services</a>
+        {% for chip in service_filters %}
+          {% if chip.type == service %}
+            <a class="filter-chip is-active" href="?{{ query_without_service }}" aria-current="true">
+              {{ chip.type.name }}
+              <svg class="filter-chip-x" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M3.5 3.5l7 7m0-7l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <span class="visually-hidden">Clear filter</span>
+            </a>
+          {% else %}
+            <a class="filter-chip" href="?{{ chip.query }}">{{ chip.type.name }}</a>
+          {% endif %}
+        {% endfor %}
+      </nav>
+    {% endif %}
 
     {% if notice %}
       <div class="alert alert-info" role="status"><span class="alert-icon" aria-hidden="true">!</span><span>{{ notice }}</span></div>
@@ -96,9 +86,23 @@
     {% if caregivers %}
       <div class="results-header">
         <h2>{{ caregivers|length }} caregiver{{ caregivers|length|pluralize }} {% if origin %}near {{ origin.label }}{% else %}on PawPal{% endif %}{% if service %} · {{ service.name }}{% endif %}</h2>
-        <button type="button" class="btn btn-outline btn-small map-toggle" id="map-toggle" aria-controls="map-panel" aria-expanded="{% if show_map %}true{% else %}false{% endif %}" hidden>
-          {% if show_map %}Hide map{% else %}Show map{% endif %}
-        </button>
+        <div class="results-tools">
+          <button type="button" class="btn btn-outline btn-small map-toggle" id="map-toggle" aria-controls="map-panel" aria-expanded="{% if show_map %}true{% else %}false{% endif %}" hidden>
+            {% if show_map %}Hide map{% else %}Show map{% endif %}
+          </button>
+          <form method="get" class="sort-form" id="caregiver-filters">
+            {% for key, value in request.GET.items %}
+              {% if key != "sort" and key != "map" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
+            {% endfor %}
+            <input type="hidden" name="map" value="{% if show_map %}1{% endif %}">
+            <label class="visually-hidden" for="filter-sort">Sort by</label>
+            <select id="filter-sort" name="sort" class="pill-select" data-autosubmit>
+              {% for value, label in sort_choices %}
+                <option value="{{ value }}"{% if value == sort %} selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
       </div>
 
       <div class="search-layout{% if show_map %} with-map{% endif %}" id="search-layout">
