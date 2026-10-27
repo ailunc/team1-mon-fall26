@@ -52,7 +52,7 @@ class SpecifyBookingDetailsTests(BookingTestData):
         self.assertEqual(booking.service_type, self.sitting)
         self.assertEqual(timezone.localtime(booking.start_time), start)
         self.assertContains(response, "Biscuit · Pet sitting")
-        self.assertContains(response, start.strftime("%b %-d, 9:30 AM"))
+        self.assertContains(response, f"{start:%b} {start.day}, 9:30 AM")
         self.assertContains(response, "11:30 AM")
 
 
