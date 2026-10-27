@@ -10,6 +10,12 @@ from django.urls import reverse
 PET_THEMES = ("peach", "mint", "pink", "yellow", "blue", "lavender")
 
 
+class PetQuerySet(models.QuerySet):
+    def active(self):
+        """Pets that haven't been deleted by their owner."""
+        return self.filter(deleted_at__isnull=True)
+
+
 class Pet(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -43,6 +49,11 @@ class Pet(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    # Set when the owner deletes a pet that has booking history (#24). The pet
+    # disappears from the owner's pages, but past bookings can still show it.
+    deleted_at = models.DateTimeField(blank=True, null=True)
+
+    objects = PetQuerySet.as_manager()
 
     class Meta:
         ordering = ["name"]

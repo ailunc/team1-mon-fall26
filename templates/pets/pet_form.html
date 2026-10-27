@@ -145,6 +145,7 @@
     </section>
 
     <div class="form-actions">
+      {% if pet %}<a class="delete-link" href="{% url 'pets:delete' pet.pk %}">Delete pet profile</a>{% endif %}
       <a class="btn btn-outline" href="{% if pet %}{{ pet.get_absolute_url }}{% else %}{% url 'pets:list' %}{% endif %}">Cancel</a>
       <button type="submit" class="btn btn-dark">{% if pet %}Save changes{% else %}Save pet profile{% endif %}</button>
     </div>

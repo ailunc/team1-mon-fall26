@@ -2907,3 +2907,57 @@ img.pet-initial-large {
     display: none;
   }
 }
+
+
+/* ---------- Delete a pet (#24) ---------- */
+
+.delete-link {
+  margin-right: auto;
+  align-self: center;
+  color: var(--error);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.delete-link:hover {
+  text-decoration: underline;
+}
+
+.delete-card {
+  padding: 28px 24px 24px;
+}
+
+.delete-card h1 {
+  margin-bottom: 10px;
+  font-size: 26px;
+}
+
+.delete-card p {
+  margin-bottom: 8px;
+}
+
+.delete-bookings {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 4px;
+  padding: 0;
+  list-style: none;
+}
+
+.delete-bookings a {
+  display: block;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.delete-bookings a:hover {
+  background: var(--bg);
+}
+
+.delete-card .form-actions {
+  margin-top: 18px;
+}
