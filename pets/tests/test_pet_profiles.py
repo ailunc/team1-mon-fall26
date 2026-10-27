@@ -10,8 +10,8 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .forms import subtract_months
-from .models import PET_THEMES, Pet, PetType
+from ..forms import subtract_months
+from ..models import PET_THEMES, Pet, PetType
 
 User = get_user_model()
 TEST_MEDIA_ROOT = tempfile.mkdtemp()

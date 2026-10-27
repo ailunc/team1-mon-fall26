@@ -8,8 +8,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Booking
-from .tests import BookingTestData, times
+from ..models import Booking
+from .test_bookings import BookingTestData, times
 
 LIST_URL = reverse("bookings:booking_list")
 CREATE_URL = reverse("bookings:booking_create")
@@ -52,7 +52,7 @@ class SpecifyBookingDetailsTests(BookingTestData):
         self.assertEqual(booking.service_type, self.sitting)
         self.assertEqual(timezone.localtime(booking.start_time), start)
         self.assertContains(response, "Biscuit · Pet sitting")
-        self.assertContains(response, start.strftime("%b %-d, 9:30 AM"))
+        self.assertContains(response, f"{start:%b} {start.day}, 9:30 AM")
         self.assertContains(response, "11:30 AM")
 
 

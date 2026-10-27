@@ -15,7 +15,7 @@ from django.utils import timezone
 from bookings.models import Booking
 from caregivers.models import CaregiverProfile, ServiceType
 
-from .models import Pet, PetType
+from ..models import Pet, PetType
 
 User = get_user_model()
 

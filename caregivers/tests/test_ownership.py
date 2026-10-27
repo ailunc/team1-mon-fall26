@@ -6,9 +6,9 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from .forms import CaregiverServicesForm
-from .models import CaregiverService
-from .tests import CaregiverTestData
+from ..forms import CaregiverServicesForm
+from ..models import CaregiverService
+from .test_caregivers import CaregiverTestData
 
 
 class CaregiverOwnershipTests(CaregiverTestData):

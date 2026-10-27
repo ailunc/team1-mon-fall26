@@ -11,8 +11,8 @@ from caregivers.geocoding import Location
 from caregivers.models import CaregiverProfile, CaregiverService, ServiceType
 from pets.models import Pet, PetType
 
-from .forms import BookingRequestForm
-from .models import Booking
+from ..forms import BookingRequestForm
+from ..models import Booking
 
 
 def times(start, end):

@@ -91,7 +91,7 @@ class BookingRequestForm(forms.ModelForm):
 
     def __init__(self, *args, owner, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["pet"].queryset = Pet.objects.filter(owner=owner).select_related(
+        self.fields["pet"].queryset = Pet.objects.active().filter(owner=owner).select_related(
             "pet_type"
         )
         # Owners can't send a request to their own caregiver profile.

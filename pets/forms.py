@@ -4,7 +4,7 @@ from datetime import date
 from django import forms
 from django.db.models import Case, IntegerField, Value, When
 
-from .models import Pet, PetType
+from .models import TEMPERAMENT_TRAITS, Pet, PetType
 
 # Pet types appear as chips in this order; any others follow alphabetically,
 # and "Other" always comes last.
@@ -74,6 +74,12 @@ class PetForm(forms.ModelForm):
         label="Age unit",
     )
     remove_photo = forms.BooleanField(required=False, label="Remove photo")
+    temperament_traits = forms.MultipleChoiceField(
+        choices=TEMPERAMENT_TRAITS,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Temperament",
+    )
 
     class Meta:
         model = Pet
@@ -85,6 +91,8 @@ class PetForm(forms.ModelForm):
             "portion",
             "feeding_times",
             "feeding_instructions",
+            "temperament_traits",
+            "behavior_notes",
             "medications",
             "medication_dose",
             "medication_schedule",
@@ -105,6 +113,7 @@ class PetForm(forms.ModelForm):
             "medication_dose": "Dose",
             "medication_schedule": "Schedule",
             "special_care_instructions": "Special care instructions",
+            "behavior_notes": "Behavior notes & preferences",
             "vet_name": "Vet name & clinic",
             "vet_phone": "Vet phone",
             "emergency_contact_name": "Emergency contact",
@@ -123,10 +132,16 @@ class PetForm(forms.ModelForm):
             "medications": forms.TextInput(attrs={"placeholder": "e.g. Probiotic"}),
             "medication_dose": forms.TextInput(attrs={"placeholder": "e.g. 1 g"}),
             "medication_schedule": forms.TextInput(attrs={"placeholder": "e.g. Once daily with breakfast"}),
+            "behavior_notes": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                    "placeholder": "e.g. Loves belly rubs. Nervous around bikes, so keep the leash short.",
+                }
+            ),
             "special_care_instructions": forms.Textarea(
                 attrs={
                     "rows": 3,
-                    "placeholder": "Temperament, handling, health conditions, routines",
+                    "placeholder": "Handling, health conditions, routines",
                 }
             ),
             "vet_name": forms.TextInput(attrs={"placeholder": "e.g. Dr. Patel, Brooklyn Vets"}),
