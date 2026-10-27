@@ -1787,6 +1787,7 @@ img.pet-initial-large {
 }
 
 .care-icon-temperament { background: var(--lavender); color: var(--purple-dark); }
+.care-icon-rating { background: var(--yellow-soft); color: #9b7435; font-size: 14px; }
 .care-icon-feeding { background: #ffd3b0; color: #7a3410; }
 .care-icon-medication { background: #ffc8d9; color: #7a1f45; }
 .care-icon-emergency { background: #bde0f5; color: #2d3a8c; }
@@ -3000,4 +3001,143 @@ img.pet-initial-large {
   background: var(--lavender);
   color: var(--purple-dark);
   font-size: 12px;
+}
+
+/* ---------- Ratings and reviews (#62, #63, #66) ---------- */
+
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  font-size: 16px;
+  line-height: 1;
+  vertical-align: -2px;
+}
+
+.star {
+  color: #e6d3ca;
+}
+
+.star.is-on {
+  color: var(--yellow);
+}
+
+/* Star picker: the radios are listed 5..1 and shown right to left, so the
+   picked star and every star "before" it (its later siblings) light up. */
+.star-picker {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  gap: 4px;
+}
+
+.star-option {
+  position: relative;
+  margin: 0 !important;
+  cursor: pointer;
+}
+
+.star-option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.star-option span[aria-hidden] {
+  display: block;
+  font-size: 34px;
+  line-height: 1;
+  color: #e6d3ca;
+  transition: color 0.1s;
+}
+
+.star-option:hover span[aria-hidden],
+.star-option:hover ~ .star-option span[aria-hidden],
+.star-option:has(input:checked) span[aria-hidden],
+.star-option:has(input:checked) ~ .star-option span[aria-hidden] {
+  color: var(--yellow);
+}
+
+.star-option input:focus-visible + span {
+  outline: 3px solid rgba(244, 162, 122, 0.5);
+  border-radius: 6px;
+}
+
+.review-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fcf6f2;
+}
+
+.review-box h3 {
+  font-size: 15px;
+}
+
+.review-box p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.review-box-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.review-box-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.review-box-cta .btn {
+  flex: none;
+}
+
+.review-list {
+  margin-top: 22px;
+}
+
+.caregiver-card-body .review-list {
+  margin-top: 0;
+}
+
+.review-list-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+
+.review-list-head h2 {
+  font-size: 18px;
+}
+
+.review-average {
+  font-size: 13px;
+}
+
+.review {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.review-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.review p {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.care-summary .phone-link,
+.pet-rating-line .stars {
+  font-size: 13px;
 }

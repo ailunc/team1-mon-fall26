@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load review_tags %}
 
 {% block title %}{{ booking.pet.name }} · {{ booking.service_type.name }} · PawPal{% endblock %}
 
@@ -91,6 +92,8 @@
           <span><strong>Request canceled.</strong> You canceled this booking on {{ booking.updated_at|date:"M j, g:i A" }}. {{ booking.caregiver.name }} can see it was canceled.</span>
         </div>
       {% endif %}
+
+      {% booking_review_box booking %}
 
       {% if can_cancel %}
         <div class="booking-cancel-row">

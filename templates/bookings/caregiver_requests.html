@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load booking_tags %}
+{% load booking_tags review_tags %}
 
 {% block title %}Care requests · PawPal{% endblock %}
 
@@ -102,6 +102,7 @@
             {% else %}
               <p class="request-done">You completed this booking.<br>{{ b.owner|first_name }} can see it as completed, and it is saved in your booking history.</p>
             {% endif %}
+            {% booking_review_box b %}
           {% endif %}
         </aside>
         {% endwith %}
