@@ -11,7 +11,8 @@ from pathlib import Path
 
 from django.test import SimpleTestCase
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# This file lives in config/tests/, so the project root is three levels up.
+BASE_DIR = Path(__file__).resolve().parents[2]
 
 SCRIPT = (
     "import json, warnings\n"

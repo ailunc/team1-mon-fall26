@@ -150,6 +150,7 @@ Avoid committing directly to `main`.
 ## Development Notes
 
 - Use a local virtual environment for Python dependencies.
+- Put tests in the app's `tests/` folder (for example `pets/tests/test_pet_profiles.py`). File names must start with `test_` so Django finds them, and code inside imports the app with `..` (for example `from ..models import Pet`).
 - Do not commit `.venv/`, local databases, or sensitive configuration files.
 - Coordinate changes to shared models and project configuration.
 - Keep dependencies documented in `requirements.txt`.

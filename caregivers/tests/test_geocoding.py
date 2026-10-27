@@ -13,9 +13,9 @@ from django.core.management import call_command
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from .forms import CaregiverProfileForm
-from .geocoding import GeocodingUnavailable, Location, distance_miles, geocode
-from .models import CaregiverProfile
+from ..forms import CaregiverProfileForm
+from ..geocoding import GeocodingUnavailable, Location, distance_miles, geocode
+from ..models import CaregiverProfile
 
 WASHINGTON_SQUARE = Location(
     latitude=Decimal("40.729"),

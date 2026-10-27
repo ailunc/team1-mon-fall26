@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from .geocoding import GeocodingUnavailable, Suggestion, autocomplete
+from ..geocoding import GeocodingUnavailable, Suggestion, autocomplete
 from .test_geocoding import WASHINGTON_SQUARE, feature, geosearch_response
 
 

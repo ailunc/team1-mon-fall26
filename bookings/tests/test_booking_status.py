@@ -8,8 +8,8 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Booking
-from .tests import BookingTestData, times
+from ..models import Booking
+from .test_bookings import BookingTestData, times
 
 LIST_URL = reverse("bookings:booking_list")
 CREATE_URL = reverse("bookings:booking_create")

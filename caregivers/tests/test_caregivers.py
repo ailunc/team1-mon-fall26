@@ -8,9 +8,9 @@ from django.contrib.auth import get_user_model
 
 from pets.models import PetType
 
-from .forms import CaregiverProfileForm, CaregiverServicesForm
-from .geocoding import Location
-from .models import CaregiverProfile, CaregiverService, ServiceType
+from ..forms import CaregiverProfileForm, CaregiverServicesForm
+from ..geocoding import Location
+from ..models import CaregiverProfile, CaregiverService, ServiceType
 
 WASHINGTON_SQUARE = Location(
     latitude=Decimal("40.729"),
