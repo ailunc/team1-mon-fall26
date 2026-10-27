@@ -10,6 +10,24 @@ from django.urls import reverse
 PET_THEMES = ("peach", "mint", "pink", "yellow", "blue", "lavender")
 
 
+# Temperament traits an owner can pick (#22). Stored by key, shown by label.
+TEMPERAMENT_TRAITS = [
+    ("friendly", "Friendly"),
+    ("playful", "Playful"),
+    ("energetic", "Energetic"),
+    ("calm", "Calm"),
+    ("cuddly", "Cuddly"),
+    ("independent", "Independent"),
+    ("shy", "Shy with strangers"),
+    ("anxious", "Anxious"),
+    ("good_with_dogs", "Good with dogs"),
+    ("good_with_cats", "Good with cats"),
+    ("good_with_kids", "Good with kids"),
+    ("reactive", "Reactive to other animals"),
+]
+TEMPERAMENT_LABELS = dict(TEMPERAMENT_TRAITS)
+
+
 class PetQuerySet(models.QuerySet):
     def active(self):
         """Pets that haven't been deleted by their owner."""
@@ -41,6 +59,9 @@ class Pet(models.Model):
     medications = models.TextField("Medication", blank=True)
     medication_dose = models.CharField("Dose", max_length=100, blank=True)
     medication_schedule = models.CharField("Schedule", max_length=100, blank=True)
+    # Temperament: picked traits plus free-text behavior notes (#22, #87).
+    temperament_traits = models.JSONField(default=list, blank=True)
+    behavior_notes = models.TextField("Behavior notes & preferences", blank=True)
     # Emergency and vet contacts.
     vet_name = models.CharField("Vet", max_length=100, blank=True)
     vet_phone = models.CharField("Vet phone", max_length=30, blank=True)
@@ -106,6 +127,16 @@ class Pet(models.Model):
         if months == 0:
             return "Under 1 mo"
         return f"{months} mo{'s' if months != 1 else ''}"
+
+    @property
+    def temperament_labels(self):
+        """The picked traits as labels, in the order the form shows them."""
+        picked = set(self.temperament_traits or [])
+        return [label for key, label in TEMPERAMENT_TRAITS if key in picked]
+
+    @property
+    def has_temperament_info(self):
+        return bool(self.temperament_labels or self.behavior_notes)
 
     @property
     def has_feeding_info(self):

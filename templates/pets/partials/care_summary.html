@@ -5,6 +5,18 @@
 {% endcomment %}
 <div class="care-summary">
   <section class="care-summary-item">
+    {% include "pets/partials/care_icon.html" with kind="temperament" %}
+    <div>
+      <h3>Temperament</h3>
+      {% if pet.has_temperament_info %}
+        {% if pet.temperament_labels %}<p>{{ pet.temperament_labels|join:", " }}.</p>{% endif %}
+        {% if pet.behavior_notes %}<p>{{ pet.behavior_notes|linebreaksbr }}</p>{% endif %}
+      {% else %}
+        <p class="muted">No temperament details added.</p>
+      {% endif %}
+    </div>
+  </section>
+  <section class="care-summary-item">
     {% include "pets/partials/care_icon.html" with kind="feeding" %}
     <div>
       <h3>Feeding</h3>

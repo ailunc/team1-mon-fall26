@@ -1786,6 +1786,7 @@ img.pet-initial-large {
   height: 16px;
 }
 
+.care-icon-temperament { background: var(--lavender); color: var(--purple-dark); }
 .care-icon-feeding { background: #ffd3b0; color: #7a3410; }
 .care-icon-medication { background: #ffc8d9; color: #7a1f45; }
 .care-icon-emergency { background: #bde0f5; color: #2d3a8c; }
@@ -2960,4 +2961,43 @@ img.pet-initial-large {
 
 .delete-card .form-actions {
   margin-top: 18px;
+}
+
+
+/* ---------- Temperament (#22, #87) ---------- */
+
+.trait-chips {
+  column-gap: 8px;
+  row-gap: 10px;
+  margin-top: 4px;
+}
+
+.trait-chips .chip span {
+  min-height: 34px;
+  padding: 6px 14px;
+  font-size: 12px;
+}
+
+.temperament-card {
+  margin-top: 14px;
+}
+
+.temperament-card .care-notes {
+  max-width: none;
+}
+
+.trait-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trait-tags .tag {
+  padding: 4px 11px;
+  background: var(--lavender);
+  color: var(--purple-dark);
+  font-size: 12px;
 }
