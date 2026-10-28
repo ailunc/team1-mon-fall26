@@ -53,27 +53,49 @@ class SearchTestData(TestCase):
         cls.dog = PetType.objects.get_or_create(name="Dog")[0]
         cls.walking = ServiceType.objects.get_or_create(name="Dog walking")[0]
         # Distances are from NYU (40.729, -73.997).
-        cls.village = cls.make("Chloe", "40.730", "-73.996", radius=3, hood="Greenwich Village")
-        cls.midtown = cls.make("Alicia", "40.748", "-73.986", radius=3, hood="Midtown South")  # ~1.4 mi
-        cls.lic = cls.make("Marcus", "40.742", "-73.936", radius=5, hood="Long Island City")  # ~3.3 mi
-        cls.boerum = cls.make("Priya", "40.686", "-73.982", radius=1, hood="Boerum Hill")  # ~3.1 mi, radius 1
-        cls.staten = cls.make("Sam", "40.643", "-74.074", radius=5, hood="St. George")  # ~7.2 mi, radius 5
+        cls.village = cls.make(
+            "Chloe", "40.730", "-73.996", radius=3, hood="Greenwich Village"
+        )
+        cls.midtown = cls.make(
+            "Alicia", "40.748", "-73.986", radius=3, hood="Midtown South"
+        )  # ~1.4 mi
+        cls.lic = cls.make(
+            "Marcus", "40.742", "-73.936", radius=5, hood="Long Island City"
+        )  # ~3.3 mi
+        cls.boerum = cls.make(
+            "Priya", "40.686", "-73.982", radius=1, hood="Boerum Hill"
+        )  # ~3.1 mi, radius 1
+        cls.staten = cls.make(
+            "Sam", "40.643", "-74.074", radius=5, hood="St. George"
+        )  # ~7.2 mi, radius 5
         cls.village.supported_pet_types.add(cls.dog)
         CaregiverService.objects.create(
-            caregiver=cls.village, service_type=cls.walking,
-            price=Decimal("25.00"), price_unit="walk", is_active=True,
+            caregiver=cls.village,
+            service_type=cls.walking,
+            price=Decimal("25.00"),
+            price_unit="walk",
+            is_active=True,
         )
 
     @classmethod
     def make(cls, name, lat, lng, radius=3, hood="", user=True, **fields):
         account = (
-            get_user_model().objects.create_user(f"cg-{name.lower()}", password="pw-12345!")
-            if user else None
+            get_user_model().objects.create_user(
+                f"cg-{name.lower()}", password="pw-12345!"
+            )
+            if user
+            else None
         )
         return CaregiverProfile.objects.create(
-            user=account, name=name, service_area=hood, neighborhood=hood,
-            address="private address", latitude=Decimal(lat), longitude=Decimal(lng),
-            service_radius_miles=radius, **fields,
+            user=account,
+            name=name,
+            service_area=hood,
+            neighborhood=hood,
+            address="private address",
+            latitude=Decimal(lat),
+            longitude=Decimal(lng),
+            service_radius_miles=radius,
+            **fields,
         )
 
     def setUp(self):
@@ -92,7 +114,9 @@ class CaregiversNearTests(SearchTestData):
 
     def test_caregiver_without_coordinates_is_left_out(self):
         self.make("NoMap", "40.730", "-73.996")
-        CaregiverProfile.objects.filter(name="NoMap").update(latitude=None, longitude=None)
+        CaregiverProfile.objects.filter(name="NoMap").update(
+            latitude=None, longitude=None
+        )
         results = caregivers_near(searchable_caregivers(self.owner), 40.729, -73.997)
         self.assertNotIn("NoMap", [c.name for c in results])
 
@@ -109,7 +133,9 @@ class FindCaregiversPageTests(SearchTestData):
 
     def test_without_a_location_lists_everyone_by_name(self):
         response = self.client.get(URL)
-        self.assertEqual(self.names(response), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"])
+        self.assertEqual(
+            self.names(response), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"]
+        )
         self.assertContains(response, "Greenwich Village")
         self.assertNotContains(response, "mi away")
 
@@ -126,7 +152,9 @@ class FindCaregiversPageTests(SearchTestData):
         self.assertNotIn("Chloe", self.names(response))
 
     def test_search_by_picked_address(self):
-        response = self.client.get(URL, {"address": "70 Washington Square South", **NYU})
+        response = self.client.get(
+            URL, {"address": "70 Washington Square South", **NYU}
+        )
         self.assertEqual(self.names(response), ["Chloe", "Alicia", "Marcus"])
         self.assertContains(response, "3 caregivers near")
         self.assertContains(response, "1.4 mi away")
@@ -142,7 +170,9 @@ class FindCaregiversPageTests(SearchTestData):
 
     def test_no_matches_shows_a_message(self):
         # Rossville, Staten Island: nobody travels that far.
-        response = self.client.get(URL, {"address": "Rossville", "lat": "40.551", "lng": "-74.212"})
+        response = self.client.get(
+            URL, {"address": "Rossville", "lat": "40.551", "lng": "-74.212"}
+        )
         self.assertEqual(self.names(response), [])
         self.assertContains(response, "No caregivers near")
 
@@ -156,8 +186,10 @@ class FindCaregiversPageTests(SearchTestData):
     @mock.patch("caregivers.views.geocode")
     def test_typed_address_is_looked_up_when_not_picked(self, geocode):
         geocode.return_value = Location(
-            latitude=Decimal("40.729"), longitude=Decimal("-73.997"),
-            neighborhood="Greenwich Village", borough="Manhattan",
+            latitude=Decimal("40.729"),
+            longitude=Decimal("-73.997"),
+            neighborhood="Greenwich Village",
+            borough="Manhattan",
         )
         response = self.client.get(URL, {"address": "70 Washington Square South"})
         geocode.assert_called_once_with("70 Washington Square South")
@@ -184,7 +216,9 @@ class FindCaregiversPageTests(SearchTestData):
     def test_map_data_has_results_but_never_addresses(self):
         response = self.client.get(URL, {"address": "x", **NYU})
         data = response.context["map_data"]
-        self.assertEqual([p["name"] for p in data["points"]], ["Chloe", "Alicia", "Marcus"])
+        self.assertEqual(
+            [p["name"] for p in data["points"]], ["Chloe", "Alicia", "Marcus"]
+        )
         self.assertEqual(data["origin"], {"latitude": 40.729, "longitude": -73.997})
         self.assertNotIn("private address", json.dumps(data))
         self.assertNotContains(response, "private address")

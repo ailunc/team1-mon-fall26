@@ -140,7 +140,9 @@ class Pet(models.Model):
 
     @property
     def has_feeding_info(self):
-        return any([self.food, self.portion, self.feeding_times, self.feeding_instructions])
+        return any(
+            [self.food, self.portion, self.feeding_times, self.feeding_instructions]
+        )
 
     @property
     def has_medication_info(self):
@@ -166,7 +168,13 @@ class Pet(models.Model):
     def medication_summary(self):
         """One line for caregivers, e.g. "Probiotic, 1 g, once daily."."""
         line = ", ".join(
-            part for part in [self.medications, self.medication_dose, self.medication_schedule] if part
+            part
+            for part in [
+                self.medications,
+                self.medication_dose,
+                self.medication_schedule,
+            ]
+            if part
         )
         return f"{line}." if line and not line.endswith(".") else line
 

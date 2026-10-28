@@ -7,7 +7,11 @@ from unittest import mock, skip
 from django.test import SimpleTestCase
 
 from caregivers.search import find_neighborhood, find_zip_code, zip_codes
-from caregivers.templatetags.caregiver_tags import experience_range, initials, place_name
+from caregivers.templatetags.caregiver_tags import (
+    experience_range,
+    initials,
+    place_name,
+)
 
 from .test_search import NYU, URL, SearchTestData
 
@@ -68,7 +72,9 @@ class SearchPageTests(SearchTestData):
         self.assertContains(response, 'name="location"')
         self.assertContains(response, 'name="distance"')
         self.assertContains(response, "Use my current location")
-        self.assertContains(response, '<option value="5" selected>5 mi</option>', html=True)
+        self.assertContains(
+            response, '<option value="5" selected>5 mi</option>', html=True
+        )
         # The old availability menu is gone (#35 now follows the profile setting).
         self.assertNotContains(response, 'id="filter-availability"')
 
@@ -95,7 +101,9 @@ class SearchPageTests(SearchTestData):
         self.assertContains(response, "Try a neighborhood, ZIP code or street address.")
 
     def test_old_address_and_area_links_still_work(self):
-        by_address = self.client.get(URL, {"address": "70 Washington Square South", **NYU})
+        by_address = self.client.get(
+            URL, {"address": "70 Washington Square South", **NYU}
+        )
         self.assertEqual(self.names(by_address), ["Chloe", "Alicia", "Marcus"])
         by_area = self.client.get(URL, {"area": "MN0202"})
         self.assertEqual(self.names(by_area)[0], "Chloe")
@@ -109,9 +117,12 @@ class DistanceTests(SearchTestData):
     def test_distance_limits_results(self):
         # Alicia is ~1.4 mi and Marcus ~3.3 mi from NYU.
         near = {"location": "NYU", **NYU}
-        self.assertEqual(self.names(self.client.get(URL, {**near, "distance": "1"})), ["Chloe"])
         self.assertEqual(
-            self.names(self.client.get(URL, {**near, "distance": "2"})), ["Chloe", "Alicia"]
+            self.names(self.client.get(URL, {**near, "distance": "1"})), ["Chloe"]
+        )
+        self.assertEqual(
+            self.names(self.client.get(URL, {**near, "distance": "2"})),
+            ["Chloe", "Alicia"],
         )
         self.assertEqual(
             self.names(self.client.get(URL, {**near, "distance": "5"})),
@@ -125,7 +136,9 @@ class DistanceTests(SearchTestData):
 
     def test_unknown_distance_uses_the_default(self):
         for value in ("3", "abc", "-1", ""):
-            response = self.client.get(URL, {"location": "NYU", **NYU, "distance": value})
+            response = self.client.get(
+                URL, {"location": "NYU", **NYU, "distance": value}
+            )
             self.assertEqual(response.context["distance"], 5)
 
 
@@ -160,7 +173,9 @@ class SortTests(SearchTestData):
         self.assertEqual(self.names(response), ["Chloe", "Alicia", "Marcus"])
 
     def test_most_experienced(self):
-        response = self.client.get(URL, {"location": "NYU", **NYU, "sort": "experience"})
+        response = self.client.get(
+            URL, {"location": "NYU", **NYU, "sort": "experience"}
+        )
         self.assertEqual(self.names(response), ["Alicia", "Marcus", "Chloe"])
 
     def test_by_name(self):
@@ -169,7 +184,9 @@ class SortTests(SearchTestData):
 
     def test_closest_without_a_location_falls_back_to_name(self):
         response = self.client.get(URL, {"sort": "closest"})
-        self.assertEqual(self.names(response), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"])
+        self.assertEqual(
+            self.names(response), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"]
+        )
 
     def test_unknown_sort(self):
         response = self.client.get(URL, {"sort": "price"})
@@ -180,7 +197,9 @@ class NoResultsTests(SearchTestData):
     def test_suggests_nearby_neighborhoods_with_caregivers(self):
         # Long Island City is ~0.5 mi from Marcus but a 1 mi search from
         # Astoria finds nobody; nearby neighborhoods with caregivers are offered.
-        response = self.client.get(URL, {"location": "Astoria, Queens", "distance": "1"})
+        response = self.client.get(
+            URL, {"location": "Astoria, Queens", "distance": "1"}
+        )
         self.assertEqual(self.names(response), [])
         self.assertContains(response, "No caregivers near")
         self.assertContains(response, "Try a nearby neighborhood or ZIP code.")
@@ -193,7 +212,13 @@ class NoResultsTests(SearchTestData):
 
     def test_no_suggestions_when_nobody_is_around(self):
         response = self.client.get(
-            URL, {"location": "Rossville", "lat": "40.551", "lng": "-74.212", "distance": "1"}
+            URL,
+            {
+                "location": "Rossville",
+                "lat": "40.551",
+                "lng": "-74.212",
+                "distance": "1",
+            },
         )
         self.assertEqual(response.context["suggestions"], [])
         self.assertContains(response, "Try a larger distance")
@@ -217,4 +242,6 @@ class MapToggleTests(SearchTestData):
 class PlaceNameTests(SimpleTestCase):
     def test_results_heading_drops_the_borough(self):
         self.assertEqual(place_name("Park Slope, Brooklyn"), "Park Slope")
-        self.assertEqual(place_name("10012 (Greenwich Village)"), "10012 (Greenwich Village)")
+        self.assertEqual(
+            place_name("10012 (Greenwich Village)"), "10012 (Greenwich Village)"
+        )

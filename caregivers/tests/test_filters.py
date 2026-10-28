@@ -31,15 +31,22 @@ class FilterTestData(SearchTestData):
         cls.offer(cls.boerum, cls.sitting, "40.00", is_active=False)
         cls.offer(cls.staten, cls.grooming, None)
         # Not taking new bookings, but offers walks.
-        cls.busy = cls.make("Busy", "40.731", "-73.995", hood="Greenwich Village",
-                            accepting_new_bookings=False)
+        cls.busy = cls.make(
+            "Busy",
+            "40.731",
+            "-73.995",
+            hood="Greenwich Village",
+            accepting_new_bookings=False,
+        )
         cls.offer(cls.busy, cls.walking, "20.00")
 
     @classmethod
     def offer(cls, caregiver, service_type, price, is_active=True):
         return CaregiverService.objects.create(
-            caregiver=caregiver, service_type=service_type,
-            price=Decimal(price) if price else None, is_active=is_active,
+            caregiver=caregiver,
+            service_type=service_type,
+            price=Decimal(price) if price else None,
+            is_active=is_active,
         )
 
 
@@ -124,7 +131,9 @@ class FilterByServiceTests(FilterTestData):
         self.assertContains(response, "Clear filter")
         self.assertEqual(response.context["query_without_service"], "")
         everyone = self.client.get(URL)
-        self.assertEqual(self.names(everyone), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"])
+        self.assertEqual(
+            self.names(everyone), ["Alicia", "Chloe", "Marcus", "Priya", "Sam"]
+        )
         self.assertNotContains(everyone, "Clear filter")
 
     def test_selected_chip_clears_the_filter(self):
@@ -183,7 +192,9 @@ class FilterByServiceTests(FilterTestData):
         self.assertIn("distance=2", query)
 
     def test_combines_with_location_search(self):
-        response = self.client.get(URL, {"location": "x", **NYU, "service": self.sitting.pk})
+        response = self.client.get(
+            URL, {"location": "x", **NYU, "service": self.sitting.pk}
+        )
         self.assertEqual(self.names(response), ["Alicia", "Marcus"])
         self.assertContains(response, "2 caregivers near")
         points = [p["name"] for p in response.context["map_data"]["points"]]
@@ -225,7 +236,9 @@ class FilterByAvailabilityTests(FilterTestData):
         self.assertIn("Busy", self.names(response))
         self.assertContains(response, "Not taking new bookings")
         # The choice is kept when the owner searches again.
-        self.assertContains(response, '<input type="hidden" name="availability" value="any">')
+        self.assertContains(
+            response, '<input type="hidden" name="availability" value="any">'
+        )
 
     def test_available_is_the_default(self):
         available = self.client.get(URL, {"availability": "available"})

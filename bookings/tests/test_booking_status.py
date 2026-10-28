@@ -30,7 +30,11 @@ class SpecifyBookingDetailsTests(BookingTestData):
 
     def test_service_date_and_start_time_are_required(self):
         for field in ("service_type", "start_time"):
-            blank = {"start_time_0": "", "start_time_1": ""} if field == "start_time" else {field: ""}
+            blank = (
+                {"start_time_0": "", "start_time_1": ""}
+                if field == "start_time"
+                else {field: ""}
+            )
             response = self.client.post(CREATE_URL, self.form_data(**blank))
             self.assertEqual(response.status_code, 200)
             self.assertIn(field, response.context["form"].errors)
@@ -93,7 +97,9 @@ class ViewBookingStatusTests(BookingTestData):
 
     def past_booking(self, **fields):
         start = timezone.now() - timedelta(days=2)
-        return self.make_booking(start_time=start, end_time=start + timedelta(hours=1), **fields)
+        return self.make_booking(
+            start_time=start, end_time=start + timedelta(hours=1), **fields
+        )
 
     def test_all_five_statuses_are_shown(self):
         for status in Booking.Status:
@@ -122,8 +128,10 @@ class ViewBookingStatusTests(BookingTestData):
         self.assertContains(response, "History")
 
     def test_active_soonest_first_history_newest_first(self):
-        later = self.make_booking(start_time=timezone.now() + timedelta(days=5),
-                                  end_time=timezone.now() + timedelta(days=5, hours=1))
+        later = self.make_booking(
+            start_time=timezone.now() + timedelta(days=5),
+            end_time=timezone.now() + timedelta(days=5, hours=1),
+        )
         sooner = self.make_booking()
         old = self.past_booking(status=Booking.Status.COMPLETED)
         older = self.make_booking(

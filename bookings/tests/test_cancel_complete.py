@@ -94,7 +94,9 @@ class CancelBookingTests(SitterTestData):
             booking.refresh_from_db()
             # A pending request whose start time passed is declined automatically.
             expected = (
-                Status.DECLINED if fields["status"] == Status.PENDING else fields["status"]
+                Status.DECLINED
+                if fields["status"] == Status.PENDING
+                else fields["status"]
             )
             self.assertEqual(booking.status, expected)
 
@@ -110,9 +112,7 @@ class CancelBookingTests(SitterTestData):
         self.client.logout()
         booking = self.make_booking()
         response = self.client.post(cancel_url(booking))
-        self.assertRedirects(
-            response, f"{reverse('login')}?next={cancel_url(booking)}"
-        )
+        self.assertRedirects(response, f"{reverse('login')}?next={cancel_url(booking)}")
 
     def test_caregiver_sees_the_cancellation(self):
         booking = self.make_booking(status=Status.ACCEPTED)
@@ -165,7 +165,9 @@ class MarkCompletedTests(SitterTestData):
         def ended(hours_ago):
             end = timezone.now() - timedelta(hours=hours_ago)
             return self.make_booking(
-                status=Status.ACCEPTED, start_time=end - timedelta(hours=1), end_time=end
+                status=Status.ACCEPTED,
+                start_time=end - timedelta(hours=1),
+                end_time=end,
             )
 
         overdue, recent = ended(25), ended(23)
@@ -177,7 +179,9 @@ class MarkCompletedTests(SitterTestData):
         self.assertEqual(overdue.status, Status.COMPLETED)
         self.assertTrue(overdue.completed_automatically)
         self.assertEqual(recent.status, Status.ACCEPTED)
-        self.assertContains(response, "Completed automatically 24 hours after the booking ended.")
+        self.assertContains(
+            response, "Completed automatically 24 hours after the booking ended."
+        )
 
     def test_completing_it_yourself_is_not_automatic(self):
         booking = self.make_booking(status=Status.ACCEPTED, **started())
@@ -220,7 +224,9 @@ class MarkCompletedTests(SitterTestData):
             booking.refresh_from_db()
             # A pending request whose start time passed is declined automatically.
             expected = (
-                Status.DECLINED if fields["status"] == Status.PENDING else fields["status"]
+                Status.DECLINED
+                if fields["status"] == Status.PENDING
+                else fields["status"]
             )
             self.assertEqual(booking.status, expected)
 
