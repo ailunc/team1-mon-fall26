@@ -4,7 +4,13 @@ from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from bookings.models import Booking
 
@@ -16,7 +22,11 @@ class OwnerPetsMixin(LoginRequiredMixin):
     """Limit every pet query to the logged-in owner's own pets."""
 
     def get_queryset(self):
-        return Pet.objects.active().filter(owner=self.request.user).select_related("pet_type")
+        return (
+            Pet.objects.active()
+            .filter(owner=self.request.user)
+            .select_related("pet_type")
+        )
 
 
 class PetListView(OwnerPetsMixin, ListView):
@@ -71,10 +81,14 @@ class PetUpdateView(OwnerPetsMixin, UpdateView):
 def upcoming_bookings(pet):
     """Bookings that still need this pet: pending requests and care that hasn't ended."""
     now = timezone.now()
-    return pet.bookings.filter(
-        Q(status=Booking.Status.PENDING, start_time__gt=now)
-        | Q(status=Booking.Status.ACCEPTED, end_time__gt=now)
-    ).select_related("caregiver", "service_type").order_by("start_time")
+    return (
+        pet.bookings.filter(
+            Q(status=Booking.Status.PENDING, start_time__gt=now)
+            | Q(status=Booking.Status.ACCEPTED, end_time__gt=now)
+        )
+        .select_related("caregiver", "service_type")
+        .order_by("start_time")
+    )
 
 
 class PetDeleteView(OwnerPetsMixin, DeleteView):

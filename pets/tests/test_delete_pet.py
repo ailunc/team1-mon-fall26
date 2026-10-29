@@ -43,9 +43,13 @@ class DeletePetTests(TestCase):
 
     def assert_hidden_from_owner(self):
         # Gone from the pet cards (the booking panel may still mention past bookings).
-        self.assertNotIn(self.pet, self.client.get(reverse("pets:list")).context["pets"])
+        self.assertNotIn(
+            self.pet, self.client.get(reverse("pets:list")).context["pets"]
+        )
         for name in ("pets:detail", "pets:edit", "pets:delete"):
-            self.assertEqual(self.client.get(reverse(name, args=[self.pet.pk])).status_code, 404)
+            self.assertEqual(
+                self.client.get(reverse(name, args=[self.pet.pk])).status_code, 404
+            )
 
     def test_edit_page_links_to_delete(self):
         response = self.client.get(reverse("pets:edit", args=[self.pet.pk]))
@@ -63,7 +67,9 @@ class DeletePetTests(TestCase):
         self.assertRedirects(response, reverse("pets:list"))
         self.assertContains(response, "Milo&#x27;s profile was deleted.")
         self.assertFalse(Pet.objects.filter(pk=self.pet.pk).exists())
-        self.assertNotIn(self.pet, self.client.get(reverse("pets:list")).context["pets"])
+        self.assertNotIn(
+            self.pet, self.client.get(reverse("pets:list")).context["pets"]
+        )
 
     def test_pet_with_past_bookings_is_hidden_but_history_stays(self):
         booking = self.book(Booking.Status.COMPLETED, timedelta(days=-3))
@@ -99,8 +105,10 @@ class DeletePetTests(TestCase):
         self.assertIsNone(self.pet.deleted_at)
 
     def test_finished_or_stale_bookings_do_not_block(self):
-        self.book(Booking.Status.ACCEPTED, timedelta(days=-2))   # care already over
-        self.book(Booking.Status.PENDING, timedelta(days=-2))    # never answered, start passed
+        self.book(Booking.Status.ACCEPTED, timedelta(days=-2))  # care already over
+        self.book(
+            Booking.Status.PENDING, timedelta(days=-2)
+        )  # never answered, start passed
         self.client.post(self.url)
         self.pet.refresh_from_db()
         self.assertIsNotNone(self.pet.deleted_at)

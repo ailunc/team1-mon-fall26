@@ -20,7 +20,9 @@ class Review(models.Model):
         "bookings.Booking", on_delete=models.CASCADE, related_name="reviews"
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reviews_written"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="reviews_written",
     )
     role = models.CharField(max_length=20, choices=Role.choices)
     rating = models.PositiveSmallIntegerField(

@@ -26,8 +26,14 @@ SCRIPT = (
 )
 
 DEPLOY_VARS = (
-    "DJANGO_DEBUG", "DJANGO_SECRET_KEY", "DJANGO_ALLOWED_HOSTS",
-    "RDS_HOSTNAME", "RDS_PORT", "RDS_DB_NAME", "RDS_USERNAME", "RDS_PASSWORD",
+    "DJANGO_DEBUG",
+    "DJANGO_SECRET_KEY",
+    "DJANGO_ALLOWED_HOSTS",
+    "RDS_HOSTNAME",
+    "RDS_PORT",
+    "RDS_DB_NAME",
+    "RDS_USERNAME",
+    "RDS_PASSWORD",
     "SQLITE_DB_PATH",
 )
 
@@ -36,8 +42,12 @@ def load_settings(**env):
     clean = {k: v for k, v in os.environ.items() if k not in DEPLOY_VARS}
     clean.update(env)
     result = subprocess.run(
-        [sys.executable, "-c", SCRIPT], cwd=BASE_DIR, env=clean,
-        capture_output=True, text=True, check=True,
+        [sys.executable, "-c", SCRIPT],
+        cwd=BASE_DIR,
+        env=clean,
+        capture_output=True,
+        text=True,
+        check=True,
     )
     return json.loads(result.stdout)
 
@@ -60,7 +70,9 @@ class SettingsFromEnvironmentTests(SimpleTestCase):
         self.assertEqual(s["secret"], "a-real-secret")
         self.assertIn("pawpal.example.com", s["hosts"])
         self.assertIn("www.pawpal.example.com", s["hosts"])
-        self.assertIn("pawpal-env.eba-x2trrt2m.us-east-2.elasticbeanstalk.com", s["hosts"])
+        self.assertIn(
+            "pawpal-env.eba-x2trrt2m.us-east-2.elasticbeanstalk.com", s["hosts"]
+        )
         self.assertEqual(s["warnings"], [])
 
     def test_warns_when_production_has_no_secret_key(self):
@@ -71,7 +83,9 @@ class SettingsFromEnvironmentTests(SimpleTestCase):
     def test_rds_variables_switch_to_postgresql(self):
         s = load_settings(
             RDS_HOSTNAME="db.example.us-east-2.rds.amazonaws.com",
-            RDS_DB_NAME="pawpal", RDS_USERNAME="pawpal", RDS_PASSWORD="pw",
+            RDS_DB_NAME="pawpal",
+            RDS_USERNAME="pawpal",
+            RDS_PASSWORD="pw",
         )
         self.assertEqual(s["db"]["ENGINE"], "django.db.backends.postgresql")
         self.assertEqual(s["db"]["HOST"], "db.example.us-east-2.rds.amazonaws.com")

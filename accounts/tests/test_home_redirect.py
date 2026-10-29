@@ -23,7 +23,9 @@ class HomeRedirectTests(TestCase):
 
     def test_caregiver_goes_to_requests(self):
         user = self.make_user("sitter", "caregiver")
-        CaregiverProfile.objects.create(user=user, name="Chloe Shih", service_area="Brooklyn")
+        CaregiverProfile.objects.create(
+            user=user, name="Chloe Shih", service_area="Brooklyn"
+        )
         self.client.force_login(user)
         self.assertRedirects(
             self.client.get(self.url), reverse("bookings:caregiver_requests")
@@ -38,19 +40,25 @@ class HomeRedirectTests(TestCase):
     def test_caregiver_without_profile_gets_caregiver_header(self):
         self.client.force_login(self.make_user("newsitter", "caregiver"))
         response = self.client.get(reverse("bookings:caregiver_requests"))
-        self.assertContains(response, '<span class="account-role">Caregiver</span>', html=True)
+        self.assertContains(
+            response, '<span class="account-role">Caregiver</span>', html=True
+        )
         self.assertContains(response, f'href="{reverse("create_caregiver_profile")}"')
         self.assertNotContains(response, ">My pets</a>")
 
     def test_pet_owner_gets_pet_owner_header(self):
         self.client.force_login(self.make_user("owner", "pet_owner"))
         response = self.client.get(reverse("pets:list"))
-        self.assertContains(response, '<span class="account-role">Pet owner</span>', html=True)
+        self.assertContains(
+            response, '<span class="account-role">Pet owner</span>', html=True
+        )
         self.assertContains(response, ">My pets</a>")
 
     def test_login_lands_on_start_page(self):
         self.make_user("owner", "pet_owner")
         response = self.client.post(
-            reverse("login"), {"username": "owner", "password": "Pawpal!2026x"}, follow=True
+            reverse("login"),
+            {"username": "owner", "password": "Pawpal!2026x"},
+            follow=True,
         )
         self.assertRedirects(response, reverse("pets:list"))

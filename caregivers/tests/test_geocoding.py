@@ -39,11 +39,20 @@ def geosearch_response(features):
     return response
 
 
-def feature(lng, lat, neighbourhood="Greenwich Village", borough="Manhattan",
-            label="70 WASHINGTON SQUARE SOUTH, New York, NY, USA"):
+def feature(
+    lng,
+    lat,
+    neighbourhood="Greenwich Village",
+    borough="Manhattan",
+    label="70 WASHINGTON SQUARE SOUTH, New York, NY, USA",
+):
     return {
         "geometry": {"type": "Point", "coordinates": [lng, lat]},
-        "properties": {"neighbourhood": neighbourhood, "borough": borough, "label": label},
+        "properties": {
+            "neighbourhood": neighbourhood,
+            "borough": borough,
+            "label": label,
+        },
     }
 
 
@@ -107,8 +116,10 @@ class DistanceTests(SimpleTestCase):
 
     def test_accepts_decimals(self):
         miles = distance_miles(
-            WASHINGTON_SQUARE.latitude, WASHINGTON_SQUARE.longitude,
-            PARK_SLOPE.latitude, PARK_SLOPE.longitude,
+            WASHINGTON_SQUARE.latitude,
+            WASHINGTON_SQUARE.longitude,
+            PARK_SLOPE.latitude,
+            PARK_SLOPE.longitude,
         )
         self.assertAlmostEqual(miles, 4.7, delta=0.2)
 
@@ -273,7 +284,11 @@ class GeocodeCaregiversCommandTests(TestCase):
         return out.getvalue(), err.getvalue()
 
     def make(self, **fields):
-        defaults = {"name": "Chloe", "service_area": "Village", "address": "70 Washington Sq S"}
+        defaults = {
+            "name": "Chloe",
+            "service_area": "Village",
+            "address": "70 Washington Sq S",
+        }
         defaults.update(fields)
         return CaregiverProfile.objects.create(**defaults)
 
@@ -350,10 +365,14 @@ class HouseNumberGuardTests(SimpleTestCase):
 
 class LocationConfirmationTests(TestCase):
     @mock.patch("caregivers.forms.geocode")
-    def test_profile_shows_the_neighborhood_without_a_placement_message(self, geocode_mock):
+    def test_profile_shows_the_neighborhood_without_a_placement_message(
+        self, geocode_mock
+    ):
         geocode_mock.return_value = Location(
-            latitude=Decimal("40.729"), longitude=Decimal("-73.997"),
-            neighborhood="Greenwich Village", borough="Manhattan",
+            latitude=Decimal("40.729"),
+            longitude=Decimal("-73.997"),
+            neighborhood="Greenwich Village",
+            borough="Manhattan",
             label="70 WASHINGTON SQUARE SOUTH, New York, NY, USA",
         )
         user = get_user_model().objects.create_user("cg2", password="pw-12345!")
@@ -361,8 +380,11 @@ class LocationConfirmationTests(TestCase):
         response = self.client.post(
             reverse("create_caregiver_profile"),
             {
-                "first_name": "Chloe", "last_name": "Shih", "years_of_experience": 1,
-                "address": "70 Washington Square South", "service_radius_miles": 3,
+                "first_name": "Chloe",
+                "last_name": "Shih",
+                "years_of_experience": 1,
+                "address": "70 Washington Square South",
+                "service_radius_miles": 3,
             },
             follow=True,
         )

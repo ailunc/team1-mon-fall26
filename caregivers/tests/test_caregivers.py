@@ -29,15 +29,12 @@ class CaregiverTestData(TestCase):
         cls.sitting = ServiceType.objects.get_or_create(name="Pet sitting")[0]
 
         cls.user = get_user_model().objects.create_user(
-            username="caregiver_test",
-            password="TestPassword123!"
+            username="caregiver_test", password="TestPassword123!"
         )
 
     def setUp(self):
         # Never call the real GeoSearch service from tests.
-        patcher = mock.patch(
-            "caregivers.forms.geocode", return_value=WASHINGTON_SQUARE
-        )
+        patcher = mock.patch("caregivers.forms.geocode", return_value=WASHINGTON_SQUARE)
         self.geocode = patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -114,7 +111,9 @@ class CaregiverProfileFormTests(CaregiverTestData):
         self.assertIn("last_name", form.errors)
 
     def test_edit_form_splits_the_saved_name(self):
-        caregiver = CaregiverProfile.objects.create(name="Chloe Ann Shih", service_area="Brooklyn")
+        caregiver = CaregiverProfile.objects.create(
+            name="Chloe Ann Shih", service_area="Brooklyn"
+        )
         form = CaregiverProfileForm(instance=caregiver)
         self.assertEqual(form.initial["first_name"], "Chloe")
         self.assertEqual(form.initial["last_name"], "Ann Shih")
@@ -149,7 +148,9 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
             self.profile_data(pet_care_skills=["giving_medication", "leash_training"]),
         )
         caregiver = CaregiverProfile.objects.get()
-        self.assertEqual(caregiver.pet_care_skills, ["giving_medication", "leash_training"])
+        self.assertEqual(
+            caregiver.pet_care_skills, ["giving_medication", "leash_training"]
+        )
         self.assertEqual(
             caregiver.pet_care_skill_labels, ["Giving medication", "Leash training"]
         )
@@ -171,13 +172,12 @@ class CreateCaregiverProfileViewTests(CaregiverTestData):
         self.assertEqual(caregiver.experience_label, "3–5 years")
         self.assertEqual(caregiver.special_skills, "Giving medication")
         self.assertTrue(caregiver.accepting_new_bookings)
-        self.assertEqual(
-            set(caregiver.supported_pet_types.all()), {self.dog, self.cat}
-        )
+        self.assertEqual(set(caregiver.supported_pet_types.all()), {self.dog, self.cat})
 
     def test_selected_services_are_offered_right_away(self):
         self.client.post(
-            self.url, self.profile_data(selected_services=[self.walking.pk, self.sitting.pk])
+            self.url,
+            self.profile_data(selected_services=[self.walking.pk, self.sitting.pk]),
         )
         services = CaregiverService.objects.filter(caregiver__name="Chloe Shih")
         self.assertEqual(
@@ -217,7 +217,8 @@ class CaregiverProfileDetailViewTests(CaregiverTestData):
         self.assertNotContains(response, "$25.00")
         # Switched-off services don't show under "Services".
         self.assertEqual(
-            [s.service_type for s in response.context["provided_services"]], [self.walking]
+            [s.service_type for s in response.context["provided_services"]],
+            [self.walking],
         )
 
     def test_profile_shows_skills_and_first_name(self):
@@ -247,7 +248,9 @@ class EditCaregiverProfileViewTests(CaregiverTestData):
     def test_edit_form_is_prefilled(self):
         caregiver = self.make_caregiver(user=self.user)
         self.make_service(caregiver)
-        response = self.client.get(reverse("edit_caregiver_profile", args=[caregiver.pk]))
+        response = self.client.get(
+            reverse("edit_caregiver_profile", args=[caregiver.pk])
+        )
         self.assertEqual(response.status_code, 200)
         form = response.context["form"]
         self.assertEqual(form.instance, caregiver)
@@ -263,7 +266,9 @@ class EditCaregiverProfileViewTests(CaregiverTestData):
         # Its price is kept for when it's picked again.
         self.assertEqual(walk.price, Decimal("25.00"))
         self.assertTrue(
-            CaregiverService.objects.get(caregiver=caregiver, service_type=self.sitting).is_active
+            CaregiverService.objects.get(
+                caregiver=caregiver, service_type=self.sitting
+            ).is_active
         )
         self.client.post(url, self.profile_data(selected_services=[self.walking.pk]))
         walk.refresh_from_db()
@@ -273,7 +278,9 @@ class EditCaregiverProfileViewTests(CaregiverTestData):
         caregiver = self.make_caregiver(user=self.user)
         response = self.client.post(
             reverse("edit_caregiver_profile", args=[caregiver.pk]),
-            self.profile_data(first_name="Dana", last_name="Ruiz", accepting_new_bookings=""),
+            self.profile_data(
+                first_name="Dana", last_name="Ruiz", accepting_new_bookings=""
+            ),
         )
         self.assertRedirects(response, reverse("caregiver", args=[caregiver.pk]))
         caregiver.refresh_from_db()
@@ -298,7 +305,9 @@ class CaregiverServiceViewTests(CaregiverTestData):
 
     def test_add_and_edit_service_pages_load(self):
         service = self.make_service(self.caregiver)
-        add = self.client.get(reverse("add_caregiver_service", args=[self.caregiver.pk]))
+        add = self.client.get(
+            reverse("add_caregiver_service", args=[self.caregiver.pk])
+        )
         self.assertEqual(add.status_code, 200)
         edit = self.client.get(
             reverse("edit_caregiver_service", args=[self.caregiver.pk, service.pk])
@@ -325,7 +334,9 @@ class CaregiverServiceViewTests(CaregiverTestData):
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn("service_type", response.context["form"].errors)
-        self.assertEqual(CaregiverService.objects.filter(caregiver=self.caregiver).count(), 1)
+        self.assertEqual(
+            CaregiverService.objects.filter(caregiver=self.caregiver).count(), 1
+        )
 
     def test_price_cannot_have_too_many_digits(self):
         form = CaregiverServicesForm(data=self.service_data(price="1234567.00"))

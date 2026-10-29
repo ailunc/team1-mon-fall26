@@ -33,7 +33,9 @@ class PetPhotoOnBookingsTests(BookingTestData):
         shutil.rmtree(TEST_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
-        self.sitter = get_user_model().objects.create_user("sitter", password="pw-12345!")
+        self.sitter = get_user_model().objects.create_user(
+            "sitter", password="pw-12345!"
+        )
         self.caregiver.user = self.sitter
         self.caregiver.save()
         self.pet.photo = make_photo()
@@ -42,7 +44,9 @@ class PetPhotoOnBookingsTests(BookingTestData):
 
     def assert_photo_shown(self, response, avatar_class):
         self.assertContains(response, f'src="{self.pet.photo.url}"')
-        self.assertContains(response, f'class="{avatar_class} theme-{self.pet.theme} has-photo"')
+        self.assertContains(
+            response, f'class="{avatar_class} theme-{self.pet.theme} has-photo"'
+        )
 
     def test_owner_sees_the_photo_on_my_requests(self):
         self.client.force_login(self.owner)
@@ -56,7 +60,9 @@ class PetPhotoOnBookingsTests(BookingTestData):
 
     def test_caregiver_sees_the_photo_in_the_list_and_panel(self):
         self.client.force_login(self.sitter)
-        response = self.client.get(reverse("bookings:caregiver_requests"), {"status": "all"})
+        response = self.client.get(
+            reverse("bookings:caregiver_requests"), {"status": "all"}
+        )
         self.assert_photo_shown(response, "request-avatar")
         self.assert_photo_shown(response, "request-avatar request-avatar-large")
 

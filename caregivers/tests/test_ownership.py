@@ -17,7 +17,9 @@ class CaregiverOwnershipTests(CaregiverTestData):
     def setUp(self):
         super().setUp()
         self.mine = self.make_caregiver(user=self.user)
-        self.intruder = get_user_model().objects.create_user("intruder", password="pw-12345!")
+        self.intruder = get_user_model().objects.create_user(
+            "intruder", password="pw-12345!"
+        )
         self.service = self.make_service(self.mine)
         self.client.force_login(self.intruder)
 
@@ -61,7 +63,9 @@ class CaregiverOwnershipTests(CaregiverTestData):
             reverse("edit_caregiver_service", args=[self.mine.pk, self.service.pk]),
             self.service_data(price="1.00"),
         )
-        self.assertEqual(CaregiverService.objects.filter(caregiver=self.mine).count(), 1)
+        self.assertEqual(
+            CaregiverService.objects.filter(caregiver=self.mine).count(), 1
+        )
         self.service.refresh_from_db()
         self.assertEqual(self.service.price, Decimal("25.00"))
 
@@ -129,5 +133,7 @@ class ServicePriceRulesTests(CaregiverTestData):
         )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
-            CaregiverService.objects.filter(caregiver=caregiver, is_active=True).exists()
+            CaregiverService.objects.filter(
+                caregiver=caregiver, is_active=True
+            ).exists()
         )

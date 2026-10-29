@@ -96,8 +96,13 @@ class BookingRequestFormTests(BookingTestData):
 
     def test_pet_caregiver_service_and_times_are_required(self):
         form = self.make_form(
-            pet="", caregiver="", service_type="",
-            start_time_0="", start_time_1="", end_time_0="", end_time_1="",
+            pet="",
+            caregiver="",
+            service_type="",
+            start_time_0="",
+            start_time_1="",
+            end_time_0="",
+            end_time_1="",
         )
         self.assertFalse(form.is_valid())
         for field in ("pet", "caregiver", "service_type", "start_time", "end_time"):
@@ -153,12 +158,16 @@ class BookingCreateViewTests(BookingTestData):
 
     def test_form_only_offers_the_caregivers_services(self):
         CaregiverService.objects.create(
-            caregiver=self.caregiver, service_type=self.walk, price=Decimal("25"), is_active=True
+            caregiver=self.caregiver,
+            service_type=self.walk,
+            price=Decimal("25"),
+            is_active=True,
         )
         self.client.force_login(self.owner)
         response = self.client.get(self.url, {"caregiver": self.caregiver.pk})
         self.assertEqual(
-            response.context["services_by_caregiver"], {self.caregiver.pk: [self.walk.pk]}
+            response.context["services_by_caregiver"],
+            {self.caregiver.pk: [self.walk.pk]},
         )
         self.assertContains(response, "Back to find caregivers")
         self.assertContains(response, "Note for the caregiver")
@@ -230,7 +239,9 @@ class BookingListAndDetailViewTests(BookingTestData):
         other = self.make_booking(owner=self.other_owner, pet=self.other_pet)
         self.client.force_login(self.owner)
         response = self.client.get(reverse("bookings:booking_list"))
-        self.assertEqual(len(response.context["active"]) + len(response.context["history"]), 1)
+        self.assertEqual(
+            len(response.context["active"]) + len(response.context["history"]), 1
+        )
         self.assertNotContains(response, "Rex")
         detail = self.client.get(other.get_absolute_url())
         self.assertEqual(detail.status_code, 404)
@@ -482,7 +493,9 @@ class RespondToRequestTests(CaregiverTestData):
 
     def test_cannot_respond_after_start_time(self):
         start = timezone.now() - timedelta(hours=1)
-        booking = self.make_booking(start_time=start, end_time=start + timedelta(hours=2))
+        booking = self.make_booking(
+            start_time=start, end_time=start + timedelta(hours=2)
+        )
         self.respond(booking, "accept")
         booking.refresh_from_db()
         # Nobody answered in time, so it was declined instead of accepted.
@@ -490,7 +503,9 @@ class RespondToRequestTests(CaregiverTestData):
 
     def test_unanswered_request_is_declined_once_it_starts(self):
         start = timezone.now() - timedelta(minutes=5)
-        expired = self.make_booking(start_time=start, end_time=start + timedelta(hours=1))
+        expired = self.make_booking(
+            start_time=start, end_time=start + timedelta(hours=1)
+        )
         upcoming = self.make_booking()
         self.client.force_login(self.owner)
         self.client.get(reverse("bookings:booking_list"))
@@ -603,8 +618,10 @@ class CaregiverProfileOwnershipTests(TestCase):
     @mock.patch("caregivers.forms.geocode")
     def test_new_profile_is_linked_to_signed_in_user(self, geocode):
         geocode.return_value = Location(
-            latitude=Decimal("40.837"), longitude=Decimal("-73.866"),
-            neighborhood="Parkchester", borough="Bronx",
+            latitude=Decimal("40.837"),
+            longitude=Decimal("-73.866"),
+            neighborhood="Parkchester",
+            borough="Bronx",
         )
         user = get_user_model().objects.create_user("new", password="pw-12345!")
         self.client.force_login(user)
@@ -621,7 +638,9 @@ class CaregiverProfileOwnershipTests(TestCase):
         profile = CaregiverProfile.objects.get(name="Ana Diaz")
         self.assertEqual(profile.user, user)
         self.assertRedirects(
-            response, reverse("caregiver", args=[profile.pk]), fetch_redirect_response=False
+            response,
+            reverse("caregiver", args=[profile.pk]),
+            fetch_redirect_response=False,
         )
 
 
