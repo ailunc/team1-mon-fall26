@@ -34,6 +34,7 @@ DEPLOY_VARS = (
     "RDS_DB_NAME",
     "RDS_USERNAME",
     "RDS_PASSWORD",
+    "SQLITE_DB_PATH",
 )
 
 
@@ -90,3 +91,21 @@ class SettingsFromEnvironmentTests(SimpleTestCase):
         self.assertEqual(s["db"]["HOST"], "db.example.us-east-2.rds.amazonaws.com")
         self.assertEqual(s["db"]["PORT"], "5432")
         self.assertEqual(s["db"]["NAME"], "pawpal")
+
+    def test_sqlite_path_from_environment(self):
+        self.assertEqual(load_settings()["db"]["NAME"], str(BASE_DIR / "db.sqlite3"))
+        s = load_settings(SQLITE_DB_PATH="/var/app/data/db.sqlite3")
+        self.assertEqual(s["db"]["NAME"], "/var/app/data/db.sqlite3")
+
+
+class ElasticBeanstalkDatabaseTests(SimpleTestCase):
+    """Bug report: pets and bookings disappeared from the live site. The
+    SQLite file has to live outside /var/app/current, which each deploy
+    replaces, so the deploy config sets SQLITE_DB_PATH to the file that
+    02_database.config prepares."""
+
+    def test_deploy_config_keeps_the_database_outside_the_app_folder(self):
+        static = (BASE_DIR / ".ebextensions" / "01_static.config").read_text()
+        database = (BASE_DIR / ".ebextensions" / "02_database.config").read_text()
+        self.assertIn("SQLITE_DB_PATH: /var/app/data/db.sqlite3", static)
+        self.assertIn("touch /var/app/data/db.sqlite3", database)
