@@ -68,6 +68,31 @@ class SignUpForm(UserCreationForm):
         fields = ["username", "first_name", "last_name", "email"]
 
 
+class DeleteAccountForm(forms.Form):
+    """Story #48: confirm account deletion with the current password."""
+
+    password = forms.CharField(
+        label="Your password",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={"autocomplete": "current-password", "placeholder": "Your password"}
+        ),
+        error_messages={"required": "Enter your password to confirm."},
+    )
+
+    def __init__(self, *args, user, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError(
+                "That password isn't right.", code="wrong_password"
+            )
+        return password
+
+
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

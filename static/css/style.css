@@ -221,6 +221,14 @@ a {
   margin-bottom: 6px;
 }
 
+/* Delete account (#48), above Log out in the account menu. */
+.account-dropdown .delete-account-link {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .link-button {
   padding: 0;
   border: 0;
