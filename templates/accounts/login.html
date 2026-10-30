@@ -61,6 +61,8 @@
                 {% endfor %}
             </div>
 
+            <p class="auth-forgot"><a href="{% url 'password_reset' %}">Forgot password?</a></p>
+
             {% if next %}
                 <input type="hidden" name="next" value="{{ next }}">
             {% endif %}
